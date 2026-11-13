@@ -7,7 +7,7 @@
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
   <img alt="Games: 6" src="https://img.shields.io/badge/games-6%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots%20%C2%B7%20hold'em-FFD700?style=flat-square&labelColor=0B3D2E">
-  <img alt="Tables: 15" src="https://img.shields.io/badge/tables-15-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Tables: 18" src="https://img.shields.io/badge/tables-18-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Plugin spec v0.5" src="https://img.shields.io/badge/plugin%20spec-v0.5-D72027?style=flat-square">
 </p>
 
@@ -90,7 +90,20 @@ You're the shooter at a table laid out like the real thing. Six number boxes eac
   <img alt="Slots on the Main Floor: five reels of pixel-art symbols with two Wilds, a $5 spin paying $30 across 8 lines, the matching pays highlighted in the pay table, and the machine log listing each winning line" src="docs/readme/slots.svg" width="100%">
 </picture>
 
-Five reels and up to 20 lines, with Wilds and Diamond scatters. Three or more Diamonds anywhere award 10 free spins at double pay. Pick your lines and bet per line, then spin. The reels stop one by one and the winning lines light up. A spin only gets a **WIN** badge when you come out ahead: one that pays back less than it cost just says "Paid". Autoplay runs a set number of spins, and any key stops it. Each table sets its paylines, its payback (92%, 95% or 97%, exact and tested) and whether autoplay is allowed.
+<picture>
+  <img alt="The Gem Mine machine: a 5×4 grid of pixel-art gems, a $1 spin that cascades four times with the multiplier climbing to ×5 for a BIG WIN of $24.88, each cascade listed in the machine log" src="docs/readme/slots-gem-mine.svg" width="100%">
+</picture>
+
+Four machines, each with its own cabinet, art and mechanics. A table picks the machine:
+
+| Machine | How it plays |
+|---|---|
+| **Diamond Sevens** | Five reels and up to 20 lines, Wilds, and Diamond scatters: 3 or more award 10 free spins at double pay |
+| **Gem Mine** | 5×4 reels, 1,024 ways. Wins shatter and the gems cascade down, and each cascade raises the multiplier ×1 → ×2 → ×3 → ×5 |
+| **Brass Bell** | A classic 3-reel mechanical with a lever: blanks, mixed bars, lone cherries, and 2× wilds that multiply |
+| **Night Sky** | Star wilds walk one reel left on every respin, and stars that meet merge into a 2× (up to ×10) |
+
+A spin only gets a **WIN** badge when you come out ahead: one that pays back less than it cost just says "Paid". A cascade or a respin chain is judged as a whole. Autoplay runs a set number of spins, and any key stops it. Each table sets its machine, its paylines, its payback (92%, 95% or 97%, exact or measured and tested) and whether autoplay is allowed.
 
 ### Texas Hold'em
 
@@ -224,7 +237,7 @@ python3 main.py
 | `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | local repo (submodule, no remote yet) | — |
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
 | `craps` | Craps | 1.1.0 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
-| `slots` | Slots | 1.0.1 | Main Floor · High Limit · Single Line | local repo (submodule, no remote yet) | — |
+| `slots` | Slots | 1.1.0 | Main Floor · High Limit · Single Line (Diamond Sevens) · Gem Mine · Brass Bell · Night Sky | local repo (submodule, no remote yet) | — |
 | `poker` | Texas Hold'em | 1.0.2 | $1/$2 No-Limit · $5/$10 Pot-Limit · Heads-Up High Roller | local repo (submodule, no remote yet) | — |
 
 ## Adding a game
@@ -271,7 +284,7 @@ The current release is **1.0.0-beta.1**, a beta of 1.0. See the [changelog](CHAN
 | ✅ | Roulette: European and American wheels, la partage, a ball-and-wheel spin |
 | ✅ | Baccarat: Punto Banco with Big Road and Bead Plate scoreboards |
 | ✅ | Craps: the full layout with odds, place bets and props; you're the shooter |
-| ✅ | Slots: five reels, 20 lines, free spins, with an exact and tested payback per table |
+| ✅ | Slots: four machines (Diamond Sevens, Gem Mine, Brass Bell, Night Sky), with a tested payback per table |
 | ✅ | Texas Hold'em: no-limit and pot-limit against bots, side pots, rake, heads-up |
 | ✅ | One house style across every game; carousel lobby |
 | ⏭️ | Next: publish Roulette, Baccarat, Craps, Slots and Hold'em to GitHub so clones get every game |

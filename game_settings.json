@@ -112,6 +112,38 @@
             }
         },
         {
+            "id": "slots_gem_mine",
+            "game": "slots",
+            "name": "Gem Mine",
+            "min_bet": 1,
+            "max_bet": 100,
+            "rules": {
+                "machine": "Gem Mine"
+            }
+        },
+        {
+            "id": "slots_brass_bell",
+            "game": "slots",
+            "name": "Brass Bell",
+            "min_bet": 1,
+            "max_bet": 50,
+            "rules": {
+                "machine": "Brass Bell",
+                "payback": "92%"
+            }
+        },
+        {
+            "id": "slots_night_sky",
+            "game": "slots",
+            "name": "Night Sky",
+            "min_bet": 1,
+            "max_bet": 200,
+            "rules": {
+                "machine": "Night Sky",
+                "payback": "97%"
+            }
+        },
+        {
             "id": "poker",
             "game": "poker",
             "name": "$1/$2 No-Limit",

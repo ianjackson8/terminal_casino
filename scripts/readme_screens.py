@@ -333,6 +333,23 @@ def slots_screen(balance: float) -> None:
     ui.console.print(ui._render(), height=34)
     save(ui.console, "slots", "Slots — Main Floor")
 
+    # Gem Mine: a cascading win, to show the machines play differently
+    table = _table("slots", "Gem Mine")
+    if table.get("rules", {}).get("machine") != "Gem Mine":
+        return
+    for seed in range(800):
+        ui = st.RichUI()
+        game = ps.SlotsGame("Alex", balance, table, settings, ui, rng=random.Random(seed), plugin_mode=True)
+        game.animate = False
+        game.opening_bet()                 # the smallest bet the table allows, as the game does on sitting down
+        spin = game.play_spin()
+        if spin.win >= 4 * spin.total_bet and not spin.free_spins_won:
+            break
+    ui._prompt, ui._options, ui._default = "Your bet", game.options(), "spin"
+    ui.console = recorder(W, 34)
+    ui.console.print(ui._render(), height=34)
+    save(ui.console, "slots-gem-mine", "Slots — Gem Mine")
+
 
 def poker_screen(balance: float) -> None:
     mods = _import_game("poker", ["play_poker", "poker_tui"])

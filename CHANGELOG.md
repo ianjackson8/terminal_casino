@@ -3,6 +3,41 @@
 All notable changes to Terminal Casino. Versions follow [semver](https://semver.org). Each game is
 versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has its own draft number.
 
+## [1.0.0-beta.2] — 2026-11-13
+
+### Games
+- **Slots 1.1.1: four machines instead of one.** A new `machine` table rule picks the cabinet. Each
+  machine has its own art, mechanics and pay table:
+  - **Diamond Sevens:** the original 5-reel, 20-line machine with free spins.
+  - **Gem Mine:** 5×4 reels with 1,024 ways. Cascading wins raise the multiplier ×1 → ×5.
+  - **Brass Bell:** a 3-reel mechanical with a lever and 2× wilds.
+  - **Night Sky:** walking star wilds that respin and merge into multipliers.
+
+  A cascade or respin chain is paced as one moment of about 4 s however long it is, and is judged as
+  one spin. The payback is exact or measured and tested per machine.
+- **Craps 1.1.0:**
+  - **Layout:** laid out like a real craps table, with number boxes, the Come and Don't Come bars,
+    the Field, the Pass Line and a props panel.
+  - **New bet:** C & E.
+  - **The throw:** the dice are flung onto the felt, hit the back wall, bounce and tumble to a stop.
+
+### Casino
+- **New tables:** Gem Mine ($1–$100), Brass Bell ($1–$50, 92%) and Night Sky ($1–$200, 97%), for 18
+  tables in all.
+- **Carousel art:** each game in the lobby has its own card art, including Craps, Slots and Hold'em.
+- **README:** the four slot machines, with a Gem Mine cascade screenshot, and the new Craps table.
+
+### Games in this release
+
+| Game | Version |
+|---|---|
+| Blackjack (AI Blackjack) | 5.2.0 |
+| Roulette | 1.2.0 |
+| Baccarat | 1.1.0 |
+| Craps | 1.1.0 |
+| Slots | 1.1.1 |
+| Texas Hold'em | 1.0.2 |
+
 ## [1.0.0-beta.1] — 2026-11-13
 
 The first versioned release: a beta of what 1.0 will be. Everything below works and is tested. The
@@ -65,4 +100,5 @@ before 1.0.
 - **Legacy setting:** `plugin_overrides` is still read but not passed to games. Table rules replace
   it.
 
+[1.0.0-beta.2]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.1

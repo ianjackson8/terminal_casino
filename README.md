@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version 1.0.0-beta.1" src="https://img.shields.io/badge/version-1.0.0--beta.1-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Version 1.0.0-beta.2" src="https://img.shields.io/badge/version-1.0.0--beta.2-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
   <img alt="Games: 6" src="https://img.shields.io/badge/games-6%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots%20%C2%B7%20hold'em-FFD700?style=flat-square&labelColor=0B3D2E">
@@ -237,7 +237,7 @@ python3 main.py
 | `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | local repo (submodule, no remote yet) | — |
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
 | `craps` | Craps | 1.1.0 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
-| `slots` | Slots | 1.1.0 | Main Floor · High Limit · Single Line (Diamond Sevens) · Gem Mine · Brass Bell · Night Sky | local repo (submodule, no remote yet) | — |
+| `slots` | Slots | 1.1.1 | Main Floor · High Limit · Single Line (Diamond Sevens) · Gem Mine · Brass Bell · Night Sky | local repo (submodule, no remote yet) | — |
 | `poker` | Texas Hold'em | 1.0.2 | $1/$2 No-Limit · $5/$10 Pot-Limit · Heads-Up High Roller | local repo (submodule, no remote yet) | — |
 
 ## Adding a game
@@ -272,7 +272,7 @@ The screenshots above are real renders of the UI, not mock-ups. Regenerate them 
 
 ## Roadmap
 
-The current release is **1.0.0-beta.1**, a beta of 1.0. See the [changelog](CHANGELOG.md) for what's in it and the game versions it ships with. 1.0 is waiting on two things: publishing the remaining games to GitHub, and freezing the plugin spec.
+The current release is **1.0.0-beta.2**, a beta of 1.0. See the [changelog](CHANGELOG.md) for what's in it and the game versions it ships with. 1.0 is waiting on two things: publishing the remaining games to GitHub, and freezing the plugin spec.
 
 | | Milestone |
 |---|---|

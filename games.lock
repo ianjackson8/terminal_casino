@@ -1,0 +1,41 @@
+{
+    "repo": "ianjackson8/terminal_casino",
+    "games": {
+        "ai_blackjack": {
+            "name": "Blackjack",
+            "version": "5.2.0",
+            "tag": "v5.2.0",
+            "source": "https://github.com/ianjackson8/ai_blackjack.git"
+        },
+        "baccarat": {
+            "name": "Baccarat",
+            "version": "1.1.0",
+            "tag": "v1.1.0",
+            "source": "~/Documents/Misc/casino-games/baccarat"
+        },
+        "craps": {
+            "name": "Craps",
+            "version": "1.1.0",
+            "tag": "v1.1.0",
+            "source": "~/Documents/Misc/casino-games/craps"
+        },
+        "poker": {
+            "name": "Texas Hold'em",
+            "version": "1.0.2",
+            "tag": "v1.0.2",
+            "source": "~/Documents/Misc/casino-games/poker"
+        },
+        "roulette": {
+            "name": "Roulette",
+            "version": "1.2.0",
+            "tag": "v1.2.0",
+            "source": "~/Documents/Misc/casino-games/roulette"
+        },
+        "slots": {
+            "name": "Slots",
+            "version": "1.1.1",
+            "tag": "v1.1.1",
+            "source": "~/Documents/Misc/casino-games/slots"
+        }
+    }
+}

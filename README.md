@@ -3,12 +3,12 @@
 </p>
 
 <p align="center">
-  <img alt="Version 1.0.0-beta.2" src="https://img.shields.io/badge/version-1.0.0--beta.2-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Version 1.0.0-beta.3" src="https://img.shields.io/badge/version-1.0.0--beta.3-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
   <img alt="Games: 6" src="https://img.shields.io/badge/games-6%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots%20%C2%B7%20hold'em-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Tables: 18" src="https://img.shields.io/badge/tables-18-FFD700?style=flat-square&labelColor=0B3D2E">
-  <img alt="Plugin spec v0.5" src="https://img.shields.io/badge/plugin%20spec-v0.5-D72027?style=flat-square">
+  <img alt="Plugin spec v0.6" src="https://img.shields.io/badge/plugin%20spec-v0.6-D72027?style=flat-square">
 </p>
 
 <p align="center">
@@ -204,17 +204,22 @@ def run(player_name: str, balance: float, table: dict | None = None) -> float:
 
 ## Quickstart
 
+**Download and play:** grab `terminal-casino-<version>.zip` from the [latest release](https://github.com/ianjackson8/terminal_casino/releases). It has the casino and every game in one download.
+
 ```bash
-git clone --recurse-submodules https://github.com/ianjackson8/terminal_casino.git
-cd terminal_casino
+unzip terminal-casino-*.zip && cd terminal-casino-*/
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt     # the casino itself only needs rich
 pip install torch numpy             # for AI Blackjack
 python3 main.py
 ```
 
-> [!TIP]
-> Already cloned without submodules? Run `git submodule update --init` to fetch the games.
+**Or clone the repo.** The games aren't stored in git. The first time you run `python3 main.py`, the casino downloads its release's games bundle (about 0.5 MB), checks it against the checksum in `games.lock`, and unpacks it into `plugins/`. You don't need to do anything.
+
+```bash
+git clone https://github.com/ianjackson8/terminal_casino.git && cd terminal_casino
+pip install -r requirements.txt && python3 main.py
+```
 
 ### Controls
 
@@ -233,12 +238,12 @@ python3 main.py
 
 | Key | Game | Version | Tables | Source | Extra requirements |
 |---|---|---|---|---|---|
-| `ai_blackjack` | Blackjack | 5.2.0 | Standard · High Roller · Single Deck | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) (submodule) | `pip install torch numpy` |
-| `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | local repo (submodule, no remote yet) | — |
-| `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
-| `craps` | Craps | 1.1.0 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
-| `slots` | Slots | 1.1.1 | Main Floor · High Limit · Single Line (Diamond Sevens) · Gem Mine · Brass Bell · Night Sky | local repo (submodule, no remote yet) | — |
-| `poker` | Texas Hold'em | 1.0.2 | $1/$2 No-Limit · $5/$10 Pot-Limit · Heads-Up High Roller | local repo (submodule, no remote yet) | — |
+| `ai_blackjack` | Blackjack | 5.2.0 | Standard · High Roller · Single Deck | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) | `pip install torch numpy` |
+| `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | bundled with the release | — |
+| `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | bundled with the release | — |
+| `craps` | Craps | 1.1.0 | Standard · High Roller · 10x Odds | bundled with the release | — |
+| `slots` | Slots | 1.1.1 | Main Floor · High Limit · Single Line (Diamond Sevens) · Gem Mine · Brass Bell · Night Sky | bundled with the release | — |
+| `poker` | Texas Hold'em | 1.0.2 | $1/$2 No-Limit · $5/$10 Pot-Limit · Heads-Up High Roller | bundled with the release | — |
 
 ## Adding a game
 
@@ -247,7 +252,11 @@ python3 main.py
    ```bash
    python3 -m casino.check ~/code/my_game
    ```
-3. **Add it** as a submodule (`git submodule add <url> plugins/my_game`) or as a plain folder.
+3. **Add it.** Tag a release in the game's own repo, then lock that version (the repo can be local; it doesn't need to be on GitHub):
+   ```bash
+   python3 scripts/games.py set my_game v1.0.0 --source ~/code/my_game
+   ```
+   This records the game in `games.lock` and installs it into `plugins/my_game`. To update a game later, `set` it to a new tag. For your own work in progress, put a checkout in `plugins/my_game` directly; the casino never replaces a folder it didn't install.
 4. **Open tables** for it in Settings (`G`), or in `game_settings.json`:
    ```json
    {"id": "bj_high_roller", "game": "ai_blackjack", "name": "High Roller",
@@ -260,19 +269,21 @@ python3 main.py
 main.py                 entry point: sign-in, lobby, running tables
 game_settings.json      casino settings and tables
 casino/                 the casino: UI, tables, profiles, pages, loader, compliance check
-plugins/<key>/          one folder per game (git submodule or plain folder)
+games.lock              which version of each game this casino version ships with, and the bundle's checksum
+plugins/<key>/          one folder per game, installed from games.lock (not stored in git)
 profiles/               saved players (gitignored)
 docs/GAME_SPEC.md       the plugin spec
 docs/readme/            README screenshots, generated by scripts/readme_screens.py
 scripts/                readme_screens.py: re-renders those screenshots from the real UI
                         game_review.py: plays a game in an emulated terminal to review it (pip install -r requirements-dev.txt)
+                        games.py: lock game versions, sync plugins/, build and publish a release
 ```
 
 The screenshots above are real renders of the UI, not mock-ups. Regenerate them after a UI change with `python3 scripts/readme_screens.py`.
 
 ## Roadmap
 
-The current release is **1.0.0-beta.2**, a beta of 1.0. See the [changelog](CHANGELOG.md) for what's in it and the game versions it ships with. 1.0 is waiting on two things: publishing the remaining games to GitHub, and freezing the plugin spec.
+The current release is **1.0.0-beta.3**, a beta of 1.0. See the [changelog](CHANGELOG.md) for what's in it and the game versions it ships with. 1.0 is waiting on the plugin spec being frozen.
 
 | | Milestone |
 |---|---|
@@ -287,7 +298,8 @@ The current release is **1.0.0-beta.2**, a beta of 1.0. See the [changelog](CHAN
 | ✅ | Slots: four machines (Diamond Sevens, Gem Mine, Brass Bell, Night Sky), with a tested payback per table |
 | ✅ | Texas Hold'em: no-limit and pot-limit against bots, side pots, rake, heads-up |
 | ✅ | One house style across every game; carousel lobby |
-| ⏭️ | Next: publish Roulette, Baccarat, Craps, Slots and Hold'em to GitHub so clones get every game |
+| ✅ | Games ship with each release as one bundle; a clone installs them on first launch |
+| ⏭️ | Next: freeze the plugin spec for 1.0 |
 | ⬜ | More games: keno, video poker, three card poker… |
 | ⬜ | Remove the legacy `plugin_overrides` setting; richer per-game results in Stats |
 

@@ -3,6 +3,33 @@
 All notable changes to Terminal Casino. Versions follow [semver](https://semver.org). Each game is
 versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has its own draft number.
 
+## [1.0.0-beta.3] — 2026-11-13
+
+### Games ship with the casino
+- **One download:** each release now has `terminal-casino-<version>.zip`, the casino with every game
+  installed. Download it, unzip it and run `python3 main.py`.
+- **Clones install games on first launch:** the casino downloads its release's games bundle
+  (`games-<version>.tar.gz`, about 0.5 MB), checks it against the checksum in `games.lock`, and
+  unpacks it into `plugins/`. Offline, it carries on with what it has and tries again next time.
+- **No GitHub repo per game:** games stay in their own repos, local or remote, and the casino
+  records which tagged version of each it ships in `games.lock`. The git submodules are gone, and
+  game code is no longer stored in the casino's git history.
+- **`scripts/games.py`:**
+  - `set` locks a game at a new tag (or adds a game, with `--source`).
+  - `sync` rebuilds `plugins/` from the lock.
+  - `release` builds the reproducible bundle, records its checksum, then commits, tags, pushes and
+    publishes both downloads.
+- **Safe installs:**
+  - **Checksum:** a bundle is only unpacked after its checksum matches.
+  - **Contents:** absolute paths, `..` and links are refused.
+  - **Your data:** upgrades keep each game's `logs/` and `saves/`.
+  - **Your checkouts:** a game folder the casino didn't install is never replaced.
+- **Plugin spec v0.6:** §2 and the new §2.2 describe the lock file and the bundles.
+
+### Games in this release
+Unchanged from 1.0.0-beta.2: Blackjack 5.2.0, Roulette 1.2.0, Baccarat 1.1.0, Craps 1.1.0,
+Slots 1.1.1 and Texas Hold'em 1.0.2.
+
 ## [1.0.0-beta.2] — 2026-11-13
 
 ### Games
@@ -94,11 +121,12 @@ before 1.0.
 
 ### Known limitations
 - **Five games can't be downloaded yet:** Roulette, Baccarat, Craps, Slots and Texas Hold'em are
-  submodules pointing at local folders, so a clone from GitHub only gets Blackjack. Publishing them
-  is the main item left for 1.0.
+  submodules pointing at local folders, so a clone from GitHub only gets Blackjack. Fixed in
+  1.0.0-beta.3, which ships the games with the release.
 - **Plugin spec:** it's a draft (v0.5). It will be frozen at 1.0.
 - **Legacy setting:** `plugin_overrides` is still read but not passed to games. Table rules replace
   it.
 
+[1.0.0-beta.3]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.1

@@ -14,6 +14,7 @@ from rich.table import Table
 from rich.text import Text
 
 from casino import __version__
+from casino.bundle import ensure_games, load_lock, needed
 from casino.carousel import Lobby
 from casino.loader import discover_plugins
 from casino.pages import settings_page, stats_page
@@ -255,7 +256,8 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
 #== Main ==#
 
 def log_to(ui):
-    return lambda level, msg: ui.log(f"[{'red' if level == 'error' else 'yellow'}]{esc(msg)}[/]")
+    colour = {"error": "red", "warn": "yellow", "info": "green"}
+    return lambda level, msg: ui.log(f"[{colour.get(level, 'yellow')}]{esc(msg)}[/]")
 
 
 def main() -> None:
@@ -268,6 +270,11 @@ def main() -> None:
     player = None
     try:
         ui.start()
+        # games travel with the release: install any this version is missing (first launch of a clone)
+        if needed(load_lock(), PLUGINS_DIR):
+            ui.splash_info = "Installing games…"
+            ui.refresh()
+            ensure_games(__version__, log=log_to(ui), plugins_dir=PLUGINS_DIR)
         all_plugins = discover_plugins(PLUGINS_DIR, overrides=settings["plugin_overrides"], log=log_to(ui))
         n = len(open_tables(load_tables(all_plugins, settings, log=log_to(ui)), settings))
         ui.splash_info = (f"New players buy in for [bold]{money(settings['init_balance'])}[/]  ·  "

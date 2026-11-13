@@ -1,6 +1,6 @@
 # Terminal Casino — Game Plugin Spec
 
-**Status:** Draft v0.5 · 2026-11-12
+**Status:** Draft v0.6 · 2026-11-13
 **Applies to:** any game added under `plugins/` (Slot Machine, AI Blackjack, and future tables)
 
 This document defines what a game must do to plug into Terminal Casino, and how it should look and feel once it's in. Sections marked **MUST** are enforced by the casino or will break things if ignored. **SHOULD** items are house style. Items marked *(proposed)* aren't implemented in the casino yet. See [Open questions](#10-open-questions--proposed-changes).
@@ -22,10 +22,7 @@ A game never reads or writes the casino's wallet directly. The game gets a balan
 
 ## 2. Packaging
 
-A game is a folder under `plugins/`. It can be either of these:
-
-- **Git-tracked:** its own repo, added as a git submodule (preferred for anything you'll keep developing).
-- **Plain folder:** copied straight in, with no git history of its own (fine for small or one-off games).
+Each game is developed in its own git repo. The repo can stay local, so a game doesn't need a GitHub repo of its own. The casino doesn't store game code. Instead, `games.lock` records which tagged version of each game a casino version ships with, and each casino release carries those games as one bundle (§2.2). Installed, a game is a folder under `plugins/`:
 
 ```
 terminal_casino/
@@ -40,12 +37,13 @@ terminal_casino/
 - **MUST:** the key (directory name) is lowercase `snake_case`, e.g. `ai_blackjack`, `slot_machine`.
 - **SHOULD:** the game stays runnable on its own (`python play_blackjack.py`). `plugin.py` is a thin adapter, not a fork of the game.
 
-Add a game:
+Add a game, or update one to a new release:
 
 ```bash
-git submodule add <repo-url> plugins/<key>      # git-tracked game
-cp -R ~/path/to/game plugins/<key>              # plain folder
+python scripts/games.py set <key> v1.0.0 --source ~/code/<game repo>   # --source only the first time
 ```
+
+To try work in progress, put a checkout straight in `plugins/<key>`. The casino never replaces a game folder it didn't install itself.
 
 New games appear in the lobby automatically, at their default table. Tables are added, edited and switched off on the **Settings** page (§3.5, §6). `enabled_plugins` optionally sets the game order.
 
@@ -67,38 +65,36 @@ When to bump:
 | **MINOR** | New features that don't change the odds or the contract | New bot strategy, new animation, new settings |
 | **PATCH** | Bug fixes and polish only | Fix a split edge case, fix a layout glitch at 80×24 |
 
-**Git-tracked games** also tag each release:
+Each release is tagged in the game's repo:
 
-- **SHOULD:** tag the commit that sets the version with an annotated tag named `v` + the version:
+- **MUST:** tag the commit that sets the version with an annotated tag named `v` + the version. The casino ships tags, never branches or work in progress:
 
   ```bash
   git tag -a v5.0.0 -m "AI Blackjack 5.0.0"
   git push origin v5.0.0
   ```
 
-- **SHOULD:** pin the casino's submodule to a tagged commit rather than an untagged work-in-progress commit. From the casino root, this prints the matching tag:
-
-  ```bash
-  git -C plugins/<key> describe --tags --exact-match    # → v5.0.0
-  ```
-
 - **MUST:** if a tag exists, it matches `PLUGIN_META["version"]`. A `v5.1.0` tag on a commit whose `plugin.py` says `5.0.0` is a bug.
 - **MUST NOT:** move or reuse a tag once it's pushed. A fix is a new PATCH release.
 
-Updating a git-tracked game in the casino:
-
-```bash
-cd plugins/<key>
-git fetch --tags
-git checkout v5.1.0
-cd ../..
-git add plugins/<key>
-git commit -m "Bump <key> to v5.1.0"
-```
-
-Updating a plain-folder game: replace the folder's contents and check that `PLUGIN_META["version"]` went up.
+Updating a game in the casino: `python scripts/games.py set <key> v5.1.0`. That records the new tag in `games.lock` and reinstalls `plugins/<key>`, keeping the game's `logs/` and `saves/`.
 
 The compliance check (§8.1) enforces this. A missing or invalid `version`, or a git tag that contradicts it, stops the game from loading. The lobby and Settings page show each game's version.
+
+### 2.2 Distribution
+
+| File | What it is |
+|---|---|
+| `games.lock` | For each game: its name, version, tag and source repo, plus the checksum of the bundle for this casino version |
+| `games-<version>.tar.gz` | Every locked game at its tag, attached to the casino's GitHub release. It's reproducible: the same tags always give the same checksum |
+| `terminal-casino-<version>.zip` | The casino with every game installed, also attached to the release. Download, unzip, play |
+| `plugins/<key>/.bundle.json` | What's installed in a game folder. A folder without one is a local checkout and is never touched |
+
+- **How games arrive:**
+  - **Download:** the release zip already contains every game.
+  - **Clone:** a `git clone` of the casino has no games. On first launch the casino downloads its version's bundle, checks it against the checksum in `games.lock`, and unpacks it. If the download fails, the casino carries on with what it has and tries again next launch. Setting `TERMINAL_CASINO_NO_DOWNLOAD=1` turns this off.
+- **What goes in a bundle:** only the files tracked at the game's tag, minus development-only folders (`tests/`, `.github/`, `old/`, `results/`) and runtime folders (`logs/`, `saves/`, `__pycache__/`). Keep anything a player needs, such as trained models, in tracked files.
+- **Releasing the casino:** `python scripts/games.py release` builds the bundle, records its checksum, commits, tags `v<version>`, pushes, and publishes both downloads.
 
 ---
 
@@ -449,8 +445,8 @@ Run it from the casino root. It prints a report for each game and a verdict: **R
 | Import takes longer than 0.3 s | warning | §4.4 |
 | Top-level module names don't shadow the standard library, use `casino`/`plugins`, or clash with another installed game | error | §4.3 |
 | Generic top-level module names (`tui`, `utils`, `strategy`…) | warning | §4.3 |
-| Git-tracked: a version tag at HEAD matches `version`; `v<version>` isn't on a different commit | error | §2.1 |
-| Git-tracked: release isn't tagged; uncommitted changes | warning | §2.1 |
+| Game repo (checking a repo path): a version tag at HEAD matches `version`; `v<version>` isn't on a different commit | error | §2.1 |
+| Game repo (checking a repo path): release isn't tagged; uncommitted changes | warning | §2.1 |
 | `requirements.txt` and `CHANGELOG.md` present *(dev check only)* | warning | §4.5, §2.1 |
 | Exit calls elsewhere in the game's code, outside `if __name__ == "__main__":` *(dev check only)* | warning | §3.2 |
 

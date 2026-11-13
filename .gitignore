@@ -14,3 +14,10 @@ __pycache__/
 
 # Player profiles (local saves)
 profiles/
+
+# Games are installed from games.lock (scripts/games.py sync) or the release bundle, not stored in git
+plugins/*
+!plugins/.gitkeep
+
+# Release builds (scripts/games.py)
+dist/

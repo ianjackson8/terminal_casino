@@ -30,6 +30,7 @@ class GameStats:
     best: float = 0.0       # biggest single-visit win
     worst: float = 0.0      # biggest single-visit loss (negative)
     seconds: float = 0.0    # time spent at the table
+    game: str = ""          # the game this table belongs to (stats are keyed by table label)
 
     def record(self, delta: float, seconds: float) -> None:
         self.played += 1
@@ -69,10 +70,13 @@ class Profile:
     def seconds_played(self) -> float:
         return sum(g.seconds for g in self.games.values())
 
-    def record(self, game: str, before: float, after: float, seconds: float) -> None:
+    def record(self, label: str, before: float, after: float, seconds: float, game: str = "") -> None:
+        '''Record one visit to a table. `label` is the table ("Blackjack · High Roller"), `game` its game.'''
         delta = after - before
-        self.games.setdefault(game, GameStats()).record(delta, seconds)
-        self.history.append({"t": time.time(), "game": game, "delta": delta, "balance": after})
+        stats = self.games.setdefault(label, GameStats())
+        stats.game = game or stats.game or label
+        stats.record(delta, seconds)
+        self.history.append({"t": time.time(), "game": label, "delta": delta, "balance": after})
         del self.history[:-HISTORY_CAP]
         self.last_played = time.time()
 

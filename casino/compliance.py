@@ -28,13 +28,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
+from casino.tables import check_rule_schema
+
 ERROR, WARN, OK = "error", "warn", "ok"
 
 KEY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$")
 VERSION_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+")
 
-META_FIELDS = {"name", "description", "min_bet", "version", "author", "api"}
+META_FIELDS = {"name", "description", "min_bet", "version", "author", "api", "rules"}
 HEAVY_MODULES = {"torch", "tensorflow", "jax", "numpy", "pandas", "scipy", "sklearn", "matplotlib",
                  "cv2", "pygame", "transformers"}
 GENERIC_MODULES = {"tui", "ui", "utils", "util", "helpers", "config", "settings", "strategy", "game",
@@ -289,6 +291,16 @@ def _check_meta(r: Report) -> None:
         r.add(OK, "§3.1", "PLUGIN_META", f"{meta['name']} v{meta['version']}, min bet {meta['min_bet']}")
 
 
+def accepts_table(run) -> bool:
+    '''True if run() takes a `table` keyword (or **kwargs), so the casino can pass table settings.'''
+    try:
+        params = inspect.signature(run).parameters.values()
+    except (TypeError, ValueError):
+        return False
+    return any(p.name == "table" and p.kind in (p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY) or p.kind == p.VAR_KEYWORD
+               for p in params)
+
+
 def _check_run(r: Report) -> None:
     run = getattr(r.module, "run", None)
     if not callable(run):
@@ -298,10 +310,27 @@ def _check_run(r: Report) -> None:
         inspect.signature(run).bind("Player", 100.0)
     except TypeError:
         r.add(ERROR, "§3.2", "run()", "must accept (player_name, balance) as positional arguments")
+        return
     except ValueError:
         r.add(WARN, "§3.2", "run()", "signature couldn't be inspected")
-    else:
-        r.add(OK, "§3.2", "run()", "accepts (player_name, balance)")
+        return
+    takes_table = accepts_table(run)
+    r.add(OK, "§3.2", "run()", "accepts (player_name, balance" + (", table=…)" if takes_table else ")"))
+
+    schema = r.meta.get("rules")
+    if schema is None:
+        if takes_table:
+            r.add(OK, "§3.5", "Tables", "supports tables (stakes only; no rules declared)")
+        else:
+            r.add(OK, "§3.5", "Tables", "single table only (run() has no `table` parameter)")
+        return
+    problems = check_rule_schema(schema)
+    for p in problems:
+        r.add(ERROR, "§3.5", "Rules", p)
+    if not takes_table:
+        r.add(ERROR, "§3.5", "Rules", "PLUGIN_META declares rules, but run() has no `table` parameter to receive them")
+    elif not problems:
+        r.add(OK, "§3.5", "Rules", f"{len(schema)} table rule(s): {', '.join(schema)}")
 
 
 def _check_git(r: Report) -> None:

@@ -3,6 +3,39 @@
     "autosave": true,
     "allow_rebuy": true,
     "enabled_plugins": [],
-    "disabled_plugins": [],
+    "tables": [
+        {
+            "id": "ai_blackjack",
+            "game": "ai_blackjack",
+            "name": "Standard",
+            "min_bet": 5,
+            "max_bet": 500,
+            "rules": {}
+        },
+        {
+            "id": "bj_high_roller",
+            "game": "ai_blackjack",
+            "name": "High Roller",
+            "min_bet": 100,
+            "max_bet": 5000,
+            "rules": {
+                "num_decks": 2,
+                "allow_insurance": false
+            }
+        },
+        {
+            "id": "bj_single_deck",
+            "game": "ai_blackjack",
+            "name": "Single Deck",
+            "min_bet": 10,
+            "max_bet": 250,
+            "rules": {
+                "num_decks": 1,
+                "split_limit": "1",
+                "allow_double_after_split": false
+            }
+        }
+    ],
+    "disabled_tables": [],
     "plugin_overrides": {}
 }

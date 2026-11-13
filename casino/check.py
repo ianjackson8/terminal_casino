@@ -16,8 +16,10 @@ Author: Ian Jackson
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Dict, List
 
 from rich import box
@@ -27,7 +29,8 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from casino.compliance import ERROR, OK, WARN, Report, check_plugin, top_level_modules
+from casino.compliance import ERROR, OK, WARN, Report, accepts_table, check_plugin, top_level_modules
+from casino.tables import check_table_config
 
 ROOT = Path(__file__).resolve().parent.parent
 PLUGINS_DIR = ROOT / "plugins"
@@ -64,6 +67,29 @@ def modules_taken_by_others(key: str, path: Path) -> Dict[str, str]:
         for mod in top_level_modules(other):
             taken.setdefault(mod, other.name)
     return taken
+
+
+def check_configured_tables(report: Report) -> None:
+    '''Validate the casino's configured tables for this game. A bad table only stops that table opening.'''
+    try:
+        configured = json.loads((ROOT / "game_settings.json").read_text()).get("tables") or []
+    except (OSError, ValueError):
+        return
+    mine = [c for c in configured if isinstance(c, dict) and c.get("game") == report.key]
+    if not mine or report.module is None:
+        return
+    meta = report.meta
+    plugin = SimpleNamespace(key=report.key, name=meta.get("name", report.key), version=meta.get("version", "?"),
+                             rules=meta.get("rules") or {}, accepts_table=accepts_table(report.module.run))
+    seen = {p.name for p in installed()} - {report.key}
+    for cfg in mine:
+        problems = check_table_config(cfg, plugin, seen)
+        label = f"Table {cfg.get('id', '?')}"
+        if problems:
+            report.add(WARN, "§6", label, "won't open: " + "; ".join(problems))
+        else:
+            report.add(OK, "§6", label, f"{cfg['name']} opens")
+        seen.add(cfg.get("id"))
 
 
 def render(report: Report, console: Console) -> None:
@@ -130,6 +156,7 @@ def main(argv: List[str] = None) -> int:
     for path in targets:
         key = args.key or path.resolve().name
         report = check_plugin(path, key=key, taken=modules_taken_by_others(key, path), deep=True)
+        check_configured_tables(report)
         render(report, console)
         failed += not report.ok
 

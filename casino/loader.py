@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List
 
-from casino.compliance import check_plugin
+from casino.compliance import accepts_table, check_plugin
 
 # log(level, message) with level "error" (game blocked) or "warn" (loaded, with warnings)
 LogFn = Callable[[str, str], None]
@@ -26,6 +26,8 @@ class Plugin:
     version: str = ""
     path: Path = None
     warnings: List[str] = field(default_factory=list)
+    rules: dict = field(default_factory=dict)      # PLUGIN_META["rules"]: table rules the game accepts
+    accepts_table: bool = False                     # run() takes a `table` argument
 
 
 @dataclass
@@ -79,5 +81,7 @@ def discover_plugins(plugins_dir: Path, overrides: dict, log: LogFn = _default_l
             version=meta["version"],
             path=subdir,
             warnings=warnings,
+            rules=meta.get("rules") or {},
+            accepts_table=accepts_table(report.module.run),
         ))
     return found

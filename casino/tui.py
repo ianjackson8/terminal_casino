@@ -576,36 +576,63 @@ class RichUI(BaseUI):
                      border_style="green4", style=FELT)
 
     def _lobby(self):
-        plugins, cursor = self.lobby.plugins, self.lobby.cursor
-        if not plugins:
+        from casino.tables import bet_range, rules_summary
+        tables, cursor = self.lobby.tables, self.lobby.cursor
+        if not tables:
             empty = Group(Align.center(Text("The tables are empty.", "bold")),
-                          Align.center(Text("Add a game to the plugins/ directory to open one.", "grey62")))
+                          Align.center(Text("Add a game to plugins/, or open a table in Settings.", "grey62")))
             return Panel(Align.center(empty, vertical="middle"), title="[bold]Lobby[/]",
                          box=box.ROUNDED, border_style="green4", style=FELT)
 
         balance = self.player.balance if self.player else 0
-        table = Table(box=None, show_header=False, expand=True, pad_edge=False, padding=(0, 1))
-        table.add_column(width=2, no_wrap=True)
-        table.add_column(width=3, no_wrap=True)
-        table.add_column(ratio=1)
-        for i, plugin in enumerate(plugins):
-            selected = i == cursor
-            can_play = balance >= plugin.min_bet
-            pointer = Text("▶", "bold gold1") if selected else Text("")
-            num = Text(f" {i + 1} ", "bold black on gold1" if can_play else "grey50 on grey23") if i < 9 else Text("")
-            name = Text(plugin.name, "bold" if can_play else "grey50")
+        grid = Table(box=None, show_header=False, expand=True, pad_edge=False, padding=(0, 1))
+        grid.add_column(width=2, no_wrap=True)
+        grid.add_column(width=3, no_wrap=True)
+        grid.add_column(ratio=1, no_wrap=True, overflow="ellipsis")
+
+        def game_title(plugin) -> Text:
+            title = Text(plugin.name, "bold")
             if plugin.version:
-                name.append(f" v{plugin.version}", "grey50")
-            name.append(f"   min bet {money(plugin.min_bet)}", "cyan" if can_play else "grey42")
-            if not can_play:
-                name.append("  not enough chips", "red")
-            desc = Text(plugin.description or "", "grey62", overflow="ellipsis")
-            style = "on grey23" if selected else ""
-            table.add_row(pointer, num, name, style=style)
-            table.add_row("", "", desc, style=style)
-            table.add_row("", "", "")
-        return Panel(table, title="[bold]Lobby[/]", title_align="left",
-                     subtitle=f"[grey62]{len(plugins)} table{'s' if len(plugins) != 1 else ''} open[/]",
+                title.append(f" v{plugin.version}", "grey50")
+            return title
+
+        # group consecutive tables of the same game
+        groups = []
+        for i, t in enumerate(tables):
+            if groups and groups[-1][0] is t.plugin:
+                groups[-1][1].append((i, t))
+            else:
+                groups.append((t.plugin, [(i, t)]))
+
+        for g, (plugin, rows) in enumerate(groups):
+            if g:
+                grid.add_row("", "", "")
+            single = len(rows) == 1 and rows[0][1].is_default
+            if not single:
+                head = game_title(plugin)
+                if plugin.description:
+                    head.append(f"   {plugin.description}", "grey62")
+                grid.add_row("", "", head)
+            for i, t in rows:
+                selected = i == cursor
+                can_play = balance >= t.min_bet
+                pointer = Text("▶", "bold gold1") if selected else Text("")
+                num = Text(f" {i + 1} ", "bold black on gold1" if can_play else "grey50 on grey23") if i < 9 else Text("")
+                line = game_title(plugin) if single else Text(f"  {t.name}", "bold" if can_play else "grey50")
+                line.append(f"   {bet_range(t, money)}", "cyan" if can_play else "grey42")
+                if not can_play:
+                    line.append("  not enough chips", "red")
+                summary = rules_summary(t)
+                if summary:
+                    line.append(f"   {summary}", "grey70" if can_play else "grey42")
+                style = "on grey23" if selected else ""
+                grid.add_row(pointer, num, line, style=style)
+                if single and plugin.description:
+                    grid.add_row("", "", Text(plugin.description, "grey62"), style=style)
+
+        n = len(tables)
+        return Panel(grid, title="[bold]Lobby[/]", title_align="left",
+                     subtitle=f"[grey62]{n} table{'s' if n != 1 else ''} open[/]",
                      subtitle_align="right", box=box.ROUNDED, border_style="green4", style=FELT,
                      padding=(1, 2))
 

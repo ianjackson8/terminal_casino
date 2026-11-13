@@ -18,6 +18,7 @@ from casino.loader import discover_plugins
 from casino.pages import settings_page, stats_page
 from casino.profiles import Profile, ProfileStore
 from casino.session import Player
+from casino.tables import build_tables, open_tables
 from casino.tui import esc, make_ui, money, net_text
 
 ROOT = Path(__file__).parent
@@ -28,8 +29,9 @@ DEFAULTS = {
     "init_balance": 100.0,
     "autosave": True,
     "allow_rebuy": True,
-    "enabled_plugins": [],      # optional lobby order; empty = discovery order
-    "disabled_plugins": [],     # hidden from the lobby (toggled in Settings)
+    "enabled_plugins": [],      # optional game order in the lobby; empty = discovery order
+    "tables": [],               # extra tables per game (stakes + rules); see docs/GAME_SPEC.md §6
+    "disabled_tables": [],      # table ids hidden from the lobby (toggled in Settings)
     "plugin_overrides": {},
 }
 
@@ -39,7 +41,11 @@ DEFAULTS = {
 def load_settings() -> dict:
     try:
         with open(SETTINGS_FILE) as f:
-            return {**DEFAULTS, **json.load(f)}
+            settings = {**DEFAULTS, **json.load(f)}
+        # pre-tables configs hid whole games; a game's default table id is its plugin key
+        legacy = settings.pop("disabled_plugins", None) or []
+        settings["disabled_tables"] = sorted(set(settings.get("disabled_tables") or []) | set(legacy))
+        return settings
     except FileNotFoundError:
         return dict(DEFAULTS)
     except json.JSONDecodeError as e:
@@ -53,15 +59,15 @@ def save_settings(settings: dict) -> None:
         f.write("\n")
 
 
-def visible_plugins(all_plugins: list, settings: dict) -> list:
-    '''
-    Plugins shown in the lobby: everything installed minus disabled_plugins. enabled_plugins, if set,
-    puts those first in that order; newly installed games always show up after them.
-    '''
+def ordered_plugins(all_plugins: list, settings: dict) -> list:
+    '''Installed games, with enabled_plugins (if set) first in that order; new games follow.'''
     order = settings.get("enabled_plugins") or []
-    disabled = set(settings.get("disabled_plugins") or [])
-    ranked = sorted(all_plugins, key=lambda p: order.index(p.key) if p.key in order else len(order))
-    return [p for p in ranked if p.key not in disabled]
+    return sorted(all_plugins, key=lambda p: order.index(p.key) if p.key in order else len(order))
+
+
+def load_tables(all_plugins: list, settings: dict, log=None) -> list:
+    '''Every valid table (open or not), grouped by game.'''
+    return build_tables(ordered_plugins(all_plugins, settings), settings, log)
 
 
 #== Profiles ==#
@@ -120,14 +126,19 @@ def summary_table(player: Player) -> Table:
     return table
 
 
-def run_plugin(ui, plugin, player: Player) -> None:
-    '''Hand the terminal to a game, then take it back with the new balance.'''
+def run_table(ui, table, player: Player) -> None:
+    '''Hand the terminal to a game at one of its tables, then take it back with the new balance.'''
+    plugin = table.plugin
     balance_before = player.balance
     started = time.monotonic()
     ui.stop()
     error = None
     try:
-        player.balance = max(0.0, float(plugin.run(player.name, player.balance)))
+        if plugin.accepts_table:
+            result = plugin.run(player.name, player.balance, table=table.to_run_arg())
+        else:
+            result = plugin.run(player.name, player.balance)
+        player.balance = max(0.0, float(result))
     except (KeyboardInterrupt, EOFError):
         player.balance = balance_before
         error = "interrupted"
@@ -137,37 +148,38 @@ def run_plugin(ui, plugin, player: Player) -> None:
     finally:
         ui.start()
 
+    label = table.label
     if error == "interrupted":
-        ui.log(f"[grey62]Left {esc(plugin.name)} with Ctrl-C — balance rolled back.[/]")
+        ui.log(f"[grey62]Left {esc(label)} with Ctrl-C — balance rolled back.[/]")
         return
     if error is not None:
-        ui.log(f"[red]{esc(plugin.name)} crashed: {esc(error)}[/]")
-        ui.error(f"Error in {plugin.name} — balance restored to {money(balance_before)}.")
+        ui.log(f"[red]{esc(label)} crashed: {esc(error)}[/]")
+        ui.error(f"Error in {label} — balance restored to {money(balance_before)}.")
         return
 
-    player.record_game(plugin.name, balance_before, time.monotonic() - started)
+    player.record_game(label, balance_before, time.monotonic() - started, game=plugin.name)
     delta = player.balance - balance_before
     if delta > 0:
-        ui.log(f"[bold]{esc(plugin.name)}[/]: won [green]{money(delta)}[/]")
+        ui.log(f"[bold]{esc(label)}[/]: won [green]{money(delta)}[/]")
     elif delta < 0:
-        ui.log(f"[bold]{esc(plugin.name)}[/]: lost [red]{money(-delta)}[/]")
+        ui.log(f"[bold]{esc(label)}[/]: lost [red]{money(-delta)}[/]")
     else:
-        ui.log(f"[bold]{esc(plugin.name)}[/]: broke even")
+        ui.log(f"[bold]{esc(label)}[/]: broke even")
 
 
-def can_rebuy(player: Player, plugins: list, settings: dict) -> bool:
+def can_rebuy(player: Player, tables: list, settings: dict) -> bool:
     '''Rebuys are offered only when the player can't afford any open table.'''
     if not settings.get("allow_rebuy", True):
         return False
-    cheapest = min((p.min_bet for p in plugins), default=1.0)
+    cheapest = min((t.min_bet for t in tables), default=1.0)
     return player.balance < max(cheapest, 0.01)
 
 
-def lobby_options(plugins: list, rebuy: bool, autosave: bool) -> list:
+def lobby_options(tables: list, rebuy: bool, autosave: bool) -> list:
     options = []
-    if plugins:
+    if tables:
         options += [(("up", "k"), "up", ""), (("down", "j"), "down", "Move"), (("enter", " "), "play", "Play")]
-        last = min(len(plugins), 9)
+        last = min(len(tables), 9)
         options += [(str(i), str(i), None) for i in range(1, last + 1)]       # hidden: one per digit
     if rebuy:
         options.append(("r", "rebuy", "Rebuy"))
@@ -179,29 +191,29 @@ def lobby_options(plugins: list, rebuy: bool, autosave: bool) -> list:
 
 
 def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, player: Player) -> None:
-    lobby = ui.lobby = SimpleNamespace(plugins=visible_plugins(all_plugins, settings), cursor=0)
+    lobby = ui.lobby = SimpleNamespace(tables=open_tables(load_tables(all_plugins, settings), settings), cursor=0)
 
     while True:
-        plugins = lobby.plugins
+        tables = lobby.tables
         autosave = bool(settings.get("autosave", True))
         ui.autosave = autosave
         if autosave and player.dirty:
             save_player(ui, store, player, quiet=True)
-        rebuy = can_rebuy(player, plugins, settings)
+        rebuy = can_rebuy(player, tables, settings)
         action = ui.choose("[bold red]Out of chips[/]" if rebuy else "[bold]Lobby[/]",
-                           lobby_options(plugins, rebuy, autosave))
+                           lobby_options(tables, rebuy, autosave))
 
         if action == "up":
-            lobby.cursor = (lobby.cursor - 1) % len(plugins)
+            lobby.cursor = (lobby.cursor - 1) % len(tables)
         elif action == "down":
-            lobby.cursor = (lobby.cursor + 1) % len(plugins)
+            lobby.cursor = (lobby.cursor + 1) % len(tables)
         elif action == "stats":
             stats_page(ui, player)
         elif action == "settings":
-            if settings_page(ui, settings, all_plugins, store, current=player.name):
+            if settings_page(ui, settings, ordered_plugins(all_plugins, settings), store, current=player.name):
                 save_settings(settings)
-                lobby.plugins = visible_plugins(all_plugins, settings)
-                lobby.cursor = min(lobby.cursor, max(0, len(lobby.plugins) - 1))
+                lobby.tables = open_tables(load_tables(all_plugins, settings, log=log_to(ui)), settings)
+                lobby.cursor = min(lobby.cursor, max(0, len(lobby.tables) - 1))
                 ui.log("[green]Settings saved.[/]")
         elif action == "save":
             save_player(ui, store, player)
@@ -224,17 +236,21 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
             return
         elif action == "play" or action.isdigit():
             idx = lobby.cursor if action == "play" else int(action) - 1
-            if not 0 <= idx < len(plugins):
+            if not 0 <= idx < len(tables):
                 continue
             lobby.cursor = idx
-            plugin = plugins[idx]
-            if player.balance < plugin.min_bet:
-                ui.error(f"{plugin.name} needs at least {money(plugin.min_bet)} — you have {money(player.balance)}.")
+            table = tables[idx]
+            if player.balance < table.min_bet:
+                ui.error(f"{table.label} needs at least {money(table.min_bet)} — you have {money(player.balance)}.")
                 continue
-            run_plugin(ui, plugin, player)
+            run_table(ui, table, player)
 
 
 #== Main ==#
+
+def log_to(ui):
+    return lambda level, msg: ui.log(f"[{'red' if level == 'error' else 'yellow'}]{esc(msg)}[/]")
+
 
 def main() -> None:
     settings = load_settings()
@@ -243,10 +259,8 @@ def main() -> None:
     player = None
     try:
         ui.start()
-        all_plugins = discover_plugins(
-            PLUGINS_DIR, overrides=settings["plugin_overrides"],
-            log=lambda level, msg: ui.log(f"[{'red' if level == 'error' else 'yellow'}]{esc(msg)}[/]"))
-        n = len(visible_plugins(all_plugins, settings))
+        all_plugins = discover_plugins(PLUGINS_DIR, overrides=settings["plugin_overrides"], log=log_to(ui))
+        n = len(open_tables(load_tables(all_plugins, settings, log=log_to(ui)), settings))
         ui.splash_info = (f"New players buy in for [bold]{money(settings['init_balance'])}[/]  ·  "
                           f"{n} table{'s' if n != 1 else ''} open")
         ui.regulars = store.all()

@@ -34,9 +34,9 @@ class Player:
     def balance(self, value: float) -> None:
         self.profile.balance = value
 
-    def record_game(self, game_name: str, before: float, seconds: float) -> None:
-        self.profile.record(game_name, before, self.balance, seconds)
-        self.games_played[game_name] = self.games_played.get(game_name, 0) + 1
+    def record_game(self, label: str, before: float, seconds: float, game: str = "") -> None:
+        self.profile.record(label, before, self.balance, seconds, game=game)
+        self.games_played[label] = self.games_played.get(label, 0) + 1
         self.history.append(self.balance)
         self.dirty = True
 

@@ -1,6 +1,6 @@
 # Terminal Casino — Game Plugin Spec
 
-**Status:** Draft v0.3 · 2026-11-12
+**Status:** Draft v0.4 · 2026-11-12
 **Applies to:** any game added under `plugins/` (Slot Machine, AI Blackjack, and future tables)
 
 This document defines what a game must do to plug into Terminal Casino, and how it should look and feel once it's in. Sections marked **MUST** are enforced by the casino or will break things if ignored. **SHOULD** items are house style. Items marked *(proposed)* aren't implemented in the casino yet. See [Open questions](#10-open-questions--proposed-changes).
@@ -47,7 +47,7 @@ git submodule add <repo-url> plugins/<key>      # git-tracked game
 cp -R ~/path/to/game plugins/<key>              # plain folder
 ```
 
-New games appear in the lobby automatically. You can hide a game from the lobby with the **Settings** page (it's stored in `disabled_plugins`). `enabled_plugins` optionally sets the lobby order.
+New games appear in the lobby automatically, at their default table. Tables are added, edited and switched off on the **Settings** page (§3.5, §6). `enabled_plugins` optionally sets the game order.
 
 ### 2.1 Versioning
 
@@ -112,19 +112,20 @@ A module-level dict:
 |---|---|---|---|
 | `name` | `str` | yes | Display name in the lobby, logs, and stats. Short, e.g. "Blackjack". |
 | `description` | `str` | yes | One line, about 60 characters or fewer, shown under the name. |
-| `min_bet` | `float` | yes | Smallest bet the game accepts. The lobby blocks entry if the balance is below this. |
+| `min_bet` | `float` | yes | Minimum bet at the game's default table. The lobby blocks entry if the balance is below the table's minimum. |
 | `version` | `str` | yes | Semver release, `"MAJOR.MINOR.PATCH"`. The source of truth for the game's version; must match its git tag, if it has one (see §2.1). |
-| `author` | `str` | *(proposed)* | Credit line. |
+| `author` | `str` | no | Credit line. |
+| `rules` | `dict` | no | The table rules the game accepts, so the casino can run it at several tables (see §3.5). Requires `run()` to take `table`. |
 
 The loader falls back to the directory name for `name`, `""` for `description`, and `0.0` for `min_bet`. Don't rely on those fallbacks.
 
 ### 3.2 `run()`
 
 ```python
-def run(player_name: str, balance: float) -> float: ...
+def run(player_name: str, balance: float, table: dict | None = None) -> float: ...
 ```
 
-- **Input:** the player's name and their whole current casino balance.
+- **Input:** the player's name and their whole current casino balance. Games that support tables also get `table` (see §3.5). The casino only passes `table` to a `run()` that has a `table` parameter, so two-argument games keep working.
 - **Return:** the player's balance when they leave the table, as a `float`.
 - **MUST:** return a value `>= 0`. The game must never let the player bet more than they have.
 - **MUST:** return only through `return`. Never call `sys.exit()`, `exit()` or `quit()`, or raise `SystemExit`. The casino doesn't catch `SystemExit`, so it would close the whole casino.
@@ -151,6 +152,55 @@ Because Ctrl-C rolls the balance back, any winnings since the game started are l
 - **MUST NOT** load a saved balance for the human player when running as a plugin. If the game has its own save/load, turn it off, or only use it for non-money state, in plugin mode.
 - Bots and AI opponents may have their own bankrolls. Only the human player's balance crosses the plugin boundary.
 - Single human seat: the casino has one player. Multi-seat games seat `player_name` and may fill other seats with bots.
+
+### 3.5 Tables
+
+Like a real casino floor, one game can be offered at several **tables**, e.g. a $5 table, a high-roller table, or a single-deck table with different rules. Tables are **configured by the casino** (§6): the operator creates, duplicates and edits them on the Settings page. A game never defines tables itself. Its job is to **declare which rules it accepts**, then **play by the table it's handed**.
+
+Every game gets one table automatically, its *default table*: the `PLUGIN_META` minimum bet, no maximum, and default rules. A game whose `run()` has no `table` parameter only ever has that one table.
+
+**Declaring rules:** `PLUGIN_META["rules"]` maps each rule name (`snake_case`) to a spec:
+
+| Key | Required | Meaning |
+|---|---|---|
+| `type` | yes | `"int"`, `"float"`, `"bool"` or `"choice"` |
+| `label` | yes | Short name shown in the lobby and Settings, e.g. `"Decks"` |
+| `default` | yes | Value used when a table doesn't set this rule. Must itself be valid. |
+| `choices` | for `choice` | List of allowed values, e.g. `["3:2", "6:5"]` |
+| `min`, `max` | no | Bounds for `int` / `float` |
+| `description` | no | One-line hint shown in the table editor |
+
+```python
+PLUGIN_META = {
+    ...,
+    "rules": {
+        "num_decks": {"type": "int", "label": "Decks", "default": 6, "min": 1, "max": 8},
+        "blackjack_payout": {"type": "choice", "label": "Blackjack pays", "choices": ["3:2", "6:5"], "default": "3:2"},
+        "dealer_hits_soft_17": {"type": "bool", "label": "Dealer hits soft 17", "default": False},
+    },
+}
+```
+
+**The `table` argument** the casino passes to `run()`:
+
+```python
+{
+    "id": "bj_high_roller",       # stable id; don't rely on its format
+    "name": "High Roller",        # show it in the game's header
+    "min_bet": 100.0,
+    "max_bet": 5000.0,            # or None for no maximum
+    "rules": {"num_decks": 2, "blackjack_payout": "3:2", "dealer_hits_soft_17": False},
+}
+```
+
+`rules` always contains **every** declared rule, with defaults filled in, and the values are already validated against the spec.
+
+- **MUST:** enforce `min_bet <= bet <= max_bet` (and, as always, `bet <= balance`). If the player can't cover `min_bet`, end the visit and return the balance.
+- **MUST:** apply every value in `rules`. Table rules take precedence over the game's own settings file for the length of the visit.
+- **MUST:** honour every rule it declares. Don't declare a rule the game ignores.
+- **MUST NOT:** write table settings back to the game's own files.
+- **SHOULD:** show the table name and limits on screen, e.g. "High Roller · $100–$5,000" in the header.
+- Adding a rule is a MINOR version bump. Removing or renaming one is MAJOR, because tables configured with it will stop opening.
 
 ---
 
@@ -288,24 +338,39 @@ Game-specific actions use one memorable letter (`H` hit, `S` stand, `D` double, 
 
 ## 6. Game settings
 
-Each game keeps its own `game_settings.json` in its directory for rules (decks, payouts, animation…).
+Each game keeps its own `game_settings.json` in its directory for its defaults (decks, payouts, animation…).
 
-The casino's `game_settings.json` has a `plugin_overrides` block keyed by plugin key:
+The casino's `game_settings.json` holds the casino's settings and its **tables**. It's edited from the Settings page (G in the lobby), or by hand:
 
 ```json
 {
-  "init_balance": 100.0,
+  "init_balance": 500,
   "autosave": true,
   "allow_rebuy": true,
   "enabled_plugins": ["ai_blackjack", "slot_machine"],
-  "disabled_plugins": [],
-  "plugin_overrides": {
-    "ai_blackjack": { "num_decks": 6, "deal_delay": 0.4 }
-  }
+  "tables": [
+    {"id": "ai_blackjack", "game": "ai_blackjack", "name": "Standard", "min_bet": 5, "max_bet": 500, "rules": {}},
+    {"id": "bj_high_roller", "game": "ai_blackjack", "name": "High Roller", "min_bet": 100, "max_bet": 5000,
+     "rules": {"num_decks": 2}},
+    {"id": "bj_single_deck", "game": "ai_blackjack", "name": "Single Deck", "min_bet": 10, "max_bet": 500,
+     "rules": {"num_decks": 1, "blackjack_payout": "6:5"}}
+  ],
+  "disabled_tables": ["bj_single_deck"],
+  "plugin_overrides": {}
 }
 ```
 
-*(proposed)* The loader already stores these as `Plugin.overrides` but doesn't pass them on yet. The plan is to call `run(player_name, balance, settings=overrides)` **only if** the plugin's `run` accepts a `settings` keyword, so existing two-argument plugins keep working. Games would shallow-merge overrides on top of their own file and never write them back.
+| Key | Meaning |
+|---|---|
+| `enabled_plugins` | Optional game order in the lobby. Games not listed follow in folder order. |
+| `tables` | Tables per game. `id` is lowercase `snake_case` and unique; `game` is the plugin key; `max_bet` may be `null`; `rules` only lists rules that differ from the game's defaults. A game with no entries here gets its default table. |
+| `disabled_tables` | Table ids hidden from the lobby. A game's default table has the plugin key as its id. |
+
+- A table whose `id` is the plugin key is that game's original table. Its stats stay under the plain game name, so adding more tables doesn't split the history.
+- A table that fails validation isn't opened, and the reason is logged in the Casino Floor. Causes include an unknown rule, a bad value, `max_bet < min_bet`, a duplicate id, or a game that can't take tables. The game's other tables still open.
+- Stats are kept per table ("Blackjack · High Roller") and totalled per game on the Stats page.
+
+*(legacy)* `plugin_overrides` is still read by the loader but not passed to games. Use table `rules` instead.
 
 ---
 
@@ -323,15 +388,22 @@ PLUGIN_META = {
     "description": "Call it in the air. Pays even money.",
     "min_bet": 1.0,
     "version": "1.2.0",           # semver; if git-tracked, tag the release v1.2.0 (§2.1)
+
+
+    "rules": {                    # optional: lets the casino run several tables (§3.5)
+        "payout": {"type": "choice", "label": "Pays", "choices": ["1:1", "9:10"], "default": "1:1"},
+    },
 }
 
 
-def run(player_name: str, balance: float) -> float:
+def run(player_name: str, balance: float, table: dict | None = None) -> float:
     if str(HERE) not in sys.path:
         sys.path.insert(0, str(HERE))
     from coinflip_game import CoinFlipGame        # lazy import: keeps lobby startup fast
 
-    game = CoinFlipGame(player=player_name, balance=balance, root=HERE)
+    table = table or {"name": PLUGIN_META["name"], "min_bet": PLUGIN_META["min_bet"], "max_bet": None,
+                      "rules": {"payout": "1:1"}}
+    game = CoinFlipGame(player=player_name, balance=balance, root=HERE, table=table)
     try:
         return game.play()                          # returns when the player picks "Leave table"
     except KeyboardInterrupt:
@@ -366,6 +438,9 @@ Run it from the casino root. It prints a report for each game and a verdict: **R
 | `PLUGIN_META` is a dict with `name`, `description`, `min_bet` (number ≥ 0) and semver `version` | error | §3.1, §2.1 |
 | `name` > 24 chars, `description` > 60 chars, unknown `PLUGIN_META` fields (typos) | warning | §3.1 |
 | `run` exists and accepts `(player_name, balance)` | error | §3.2 |
+| `rules` (if declared) is well-formed: types, labels, choices, bounds, valid defaults | error | §3.5 |
+| `rules` declared but `run()` has no `table` parameter | error | §3.5 |
+| Each configured table: valid id (unique), name, `min_bet`, `max_bet >= min_bet`, only declared rules with valid values, game accepts tables *(checked at startup, on save, and by the dev check; a bad table is skipped, not the whole game)* | error | §6 |
 | `plugin.py` imports without raising, exiting, printing or calling `input()` | error | §4.4 |
 | No heavy modules (PyTorch, NumPy, Matplotlib, pandas…) imported at module level | error | §4.4 |
 | Import takes longer than 0.3 s | warning | §4.4 |
@@ -393,6 +468,7 @@ The automated check can't play the game. Before enabling a game, also confirm:
 - [ ] All file reads and writes are relative to the plugin dir; nothing new appears in the casino root.
 - [ ] The balance can never go negative, and no money is created for the human player.
 - [ ] Usable at 80×24 and at ≥100 columns with the side panel.
+- [ ] If it supports tables: a bet below `min_bet` or above `max_bet` is refused, and every declared rule visibly changes play.
 - [ ] Footer lists every live key; `Esc`/`Q` leaves; `?` shows the rules.
 - [ ] The game still runs on its own outside the casino.
 
@@ -416,7 +492,7 @@ The automated check can't play the game. Before enabling a game, also confirm:
 ## 10. Open questions / proposed changes
 
 1. **Ctrl-C semantics.** Should the casino keep the game's last known balance instead of rolling back? That would need games to report their balance as it changes (e.g. a callback), so rollback is the simpler default for now.
-2. **Settings passthrough.** Add the `settings=` keyword described in §6.
+2. **Settings passthrough.** ~~Add a `settings=` keyword~~. Replaced by tables (§3.5); remove `plugin_overrides`.
 3. **Explicit exit exception.** Provide `casino.GameExit(balance)` so deeply nested game code can leave without threading a return value up? It would conflict with "games don't import `casino.*`", so the alternative is for games to define their own internal exception and catch it in `plugin.py`.
 4. **Richer return value.** Return `{"balance": ..., "rounds": ..., "biggest_win": ...}` so the casino's stats screen can show per-game detail? Stay backwards compatible by still accepting a bare float.
 5. **Shared UI kit.** Move the house style (`money`, key-caps footer, header, palette, key reader) into a small standalone package both the casino and the games depend on, instead of copy-paste.

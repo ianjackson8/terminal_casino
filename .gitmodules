@@ -1,0 +1,3 @@
+[submodule "plugins/ai_blackjack"]
+	path = plugins/ai_blackjack
+	url = https://github.com/ianjackson8/ai_blackjack.git

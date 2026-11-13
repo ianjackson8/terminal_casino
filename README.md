@@ -3,9 +3,16 @@
 A terminal casino lobby that plugs independent games into one shared wallet, with player profiles, stats and saves.
 
 ```bash
+git clone --recurse-submodules https://github.com/ianjackson8/terminal_casino.git   # or: git submodule update --init
 pip install -r requirements.txt
 python3 main.py
 ```
+
+## Games
+
+| Key | Game | Version | Source | Extra requirements |
+|---|---|---|---|---|
+| `ai_blackjack` | Blackjack | 5.1.0 | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) (submodule) | `pip install torch numpy` |
 
 ## Adding a game
 

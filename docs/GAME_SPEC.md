@@ -43,7 +43,7 @@ Add a game:
 git submodule add <repo-url> plugins/<key>
 ```
 
-Then list `<key>` in `enabled_plugins` in `game_settings.json`. If that list is empty, every discovered plugin is shown.
+New games appear in the lobby automatically. You can hide a game from the lobby with the **Settings** page (it's stored in `disabled_plugins`). `enabled_plugins` optionally sets the lobby order.
 
 ---
 
@@ -240,7 +240,10 @@ The casino's `game_settings.json` has a `plugin_overrides` block keyed by plugin
 ```json
 {
   "init_balance": 100.0,
-  "enabled_plugins": ["slot_machine", "ai_blackjack"],
+  "autosave": true,
+  "allow_rebuy": true,
+  "enabled_plugins": ["ai_blackjack", "slot_machine"],
+  "disabled_plugins": [],
   "plugin_overrides": {
     "ai_blackjack": { "num_decks": 6, "deal_delay": 0.4 }
   }
@@ -289,7 +292,7 @@ Before enabling a game in `game_settings.json`:
 
 - [ ] `plugin.py` defines `PLUGIN_META` (name, description, min_bet) and `run(player_name, balance) -> float`.
 - [ ] The casino starts quickly with the plugin enabled (no heavy imports at module level).
-- [ ] The game opens from the lobby, plays a round, and **Leave table** returns to the lobby with the right balance.
+- [ ] The game opens from the lobby, plays a round, and **Leave table** returns to the lobby with the right balance (check the Stats page records it).
 - [ ] Opening the game twice in one session works (no leftover state).
 - [ ] Ctrl-C in the middle of a round returns to the lobby with a clean terminal and an intact lobby display.
 - [ ] A forced exception inside the game shows the error in the lobby and rolls the balance back.

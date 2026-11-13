@@ -11,3 +11,6 @@ myenv/
 # Python
 __pycache__/
 *.py[cod]
+
+# Player profiles (local saves)
+profiles/

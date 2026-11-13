@@ -1,5 +1,8 @@
 {
-    "init_balance": 100.0,
+    "init_balance": 500,
+    "autosave": true,
+    "allow_rebuy": true,
     "enabled_plugins": [],
+    "disabled_plugins": [],
     "plugin_overrides": {}
 }

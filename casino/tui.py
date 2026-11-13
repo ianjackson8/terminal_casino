@@ -18,7 +18,6 @@ import sys
 import threading
 import time
 from collections import deque
-from types import SimpleNamespace
 from typing import List, Optional, Sequence, Tuple
 
 from rich import box
@@ -76,6 +75,14 @@ def net_text(value) -> Text:
     if value < 0:
         return Text(signed_money(value), "bold red")
     return Text("even", "grey62")
+
+
+def ago(ts: float) -> str:
+    secs = max(0, time.time() - ts)
+    for unit, size in (("d", 86400), ("h", 3600), ("m", 60)):
+        if secs >= size:
+            return f"{int(secs // size)}{unit} ago"
+    return "just now"
 
 
 SPARK = "▁▂▃▄▅▆▇█"
@@ -190,6 +197,8 @@ class BaseUI:
         self.lobby = None        # SimpleNamespace(plugins, cursor) while the lobby is showing
         self.player = None       # casino.session.Player once seated
         self.splash_info = ""
+        self.regulars = []       # recent profiles, shown on the welcome screen
+        self.autosave = True
 
     def start(self) -> None:
         pass
@@ -493,7 +502,9 @@ class RichUI(BaseUI):
             main = self._lobby()
 
         log_view = _LogView(list(self._log), "Casino Floor")
-        if side:
+        if self._overlay is not None:     # full-screen pages get the whole body
+            body.update(main)
+        elif side:
             side_view = self._side(height - 7) if self.player is not None else log_view
             body.split_row(Layout(main, name="main"), Layout(side_view, name="side", size=side_w))
         else:
@@ -510,7 +521,7 @@ class RichUI(BaseUI):
             info.append(p.name, "bold")
             info.append("   ")
             info.append(money(p.balance), "bold green" if p.balance > 0 else "bold red")
-            info.append(f"   {p.total_sessions} game{'s' if p.total_sessions != 1 else ''} played")
+            info.append(f"   {p.total_sessions} game{'s' if p.total_sessions != 1 else ''} this visit")
         grid.add_row(title_text(), info)
         return Panel(grid, box=box.HEAVY, border_style="gold1")
 
@@ -550,6 +561,16 @@ class RichUI(BaseUI):
                  Align.center(Text("pull up a chair · one wallet, every table", "grey62")), Text("")]
         if self.splash_info:
             parts.append(Align.center(Text.from_markup(self.splash_info, style="grey62", justify="center")))
+        if self.regulars:
+            regs = Table(box=box.SIMPLE, header_style="bold gold1", pad_edge=False, padding=(0, 2))
+            regs.add_column("Regulars", style="bold", no_wrap=True)
+            regs.add_column("Balance", justify="right", no_wrap=True)
+            regs.add_column("Last seen", style="grey62", no_wrap=True)
+            for prof in self.regulars[:5]:
+                regs.add_row(esc(prof.name), Text(money(prof.balance), "green" if prof.balance > 0 else "red"),
+                             ago(prof.last_played))
+            parts += [Text(""), Align.center(regs),
+                      Align.center(Text("type a regular's name to pick up where they left off", "grey50"))]
         return Panel(Align.center(Group(*parts), vertical="middle"), box=box.ROUNDED,
                      border_style="green4", style=FELT)
 
@@ -590,9 +611,23 @@ class RichUI(BaseUI):
         wallet = Table.grid(padding=(0, 2))
         wallet.add_column(style="grey62", no_wrap=True)
         wallet.add_column(justify="right", no_wrap=True)
+        prof = p.profile
         wallet.add_row("Balance", Text(money(p.balance), "bold green" if p.balance > 0 else "bold red"))
-        wallet.add_row("Bought in", Text(money(p.starting_balance), "grey70"))
-        wallet.add_row("Net", net_text(p.net))
+        wallet.add_row("This visit", net_text(p.net))
+        wallet.add_row("Lifetime", net_text(prof.net))
+        extra = 0
+        if prof.rebuys:
+            wallet.add_row("Rebuys", Text(str(prof.rebuys), "magenta"))
+            extra += 1
+        if p.dirty:
+            save = Text("● unsaved", "yellow")
+        elif p.saved_at:
+            save = Text(f"✓ saved {time.strftime('%H:%M', time.localtime(p.saved_at))}", "green")
+        else:
+            save = Text("✓ saved", "green")
+        if self.autosave:
+            save.append(" · auto", "grey50")
+        wallet.add_row("Profile", save)
         parts = [wallet]
         if len(p.history) > 1:
             parts += [Text(""), Text("  ") + sparkline(p.history, 30)]
@@ -600,7 +635,7 @@ class RichUI(BaseUI):
             parts.append(Text(""))
             for game, count in p.games_played.items():
                 parts.append(Text.assemble(("· ", "grey50"), (game, "bold"), (f"  ×{count}", "grey62")))
-        n_lines = 3 + (2 if len(p.history) > 1 else 0) + (1 + len(p.games_played) if p.games_played else 0)
+        n_lines = 4 + extra + (2 if len(p.history) > 1 else 0) + (1 + len(p.games_played) if p.games_played else 0)
 
         layout = Layout()
         layout.split_column(

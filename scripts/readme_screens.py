@@ -219,6 +219,73 @@ def blackjack_screen(balance: float) -> None:
     save(ui.console, "blackjack", "AI Blackjack — High Roller")
 
 
+def _import_game(key: str, modules):
+    '''Import a game's own modules from plugins/<key>, or None if it (or a dependency) is missing.'''
+    plugin_dir = ROOT / "plugins" / key
+    if not plugin_dir.exists():
+        return None
+    sys.path.insert(0, str(plugin_dir))
+    try:
+        with redirect_stdout(io.StringIO()):
+            return [__import__(m) for m in modules]
+    except Exception as err:
+        print(f"  (skipped {key} screen: {err})")
+        return None
+
+
+def _table(game: str, name: str) -> dict:
+    cfg = next((t for t in SETTINGS["tables"] if t["game"] == game and t["name"] == name), None)
+    return cfg or {"name": name, "min_bet": 1, "max_bet": None, "rules": {}}
+
+
+def roulette_screen(balance: float) -> None:
+    mods = _import_game("roulette", ["play_roulette", "roulette_tui", "roulette_engine"])
+    if mods is None:
+        return
+    pr, rt, eng = mods
+    settings = {**pr.load_settings(), "write_log": False, "animate_spin": False}
+    ui = rt.RouletteUI()
+    game = pr.RouletteGame("Alex", balance, _table("roulette", "European"), settings, ui=ui, rng=random.Random(5))
+    ui.game = game
+    for spec, amount in (("17", 25), ("16/17/18", 10), ("black", 50), ("2nd12", 20)):
+        game.place(eng.parse_spot(spec, game.wheel).key, amount)
+    game.spins, game.history = 6, ["32", "5", "0", "19", "26", "8"]
+    spin = game.spin(result="17")
+    _, final_rot = pr.spin_frames(eng.WHEEL_ORDER[game.wheel], "17", game.wheel_rot,
+                                  rt.front_slot(len(eng.WHEEL_ORDER[game.wheel])), 1)
+    game.wheel_rot = final_rot % len(eng.WHEEL_ORDER[game.wheel])
+    game.ball = ("pocket", "17")
+    game.reveal(spin)
+    ui.console = recorder(W, 38)
+    ui.console.print(ui._render(), height=38)
+    save(ui.console, "roulette", "Roulette — European")
+
+
+def baccarat_screen(balance: float) -> None:
+    mods = _import_game("baccarat", ["play_baccarat", "bac_tui"])
+    if mods is None:
+        return
+    pb, bt = mods
+    settings = {**pb.load_settings(), "deal_delay": 0, "animate_cards": False, "log_game": False}
+    # find a shoe whose first coup is a Player win on a third card, which shows off the most
+    for seed in range(500):
+        ui = bt.RichUI()
+        table = {"name": "Mini Baccarat", "min_bet": 5, "max_bet": 500, "rules": {}}
+        game = pb.BaccaratGame("Alex", balance, table, settings, ui, rng=random.Random(seed), plugin_mode=True)
+        game.new_shoe()
+        game.bets = {pb.PLAYER: 100, pb.TIE: 10}
+        game.placed = list(game.bets.items())
+        game.deal()
+        if game.coup.winner == pb.PLAYER and len(game.coup.order) >= 5:
+            break
+    game.status = "Place your bets"
+    game.phase = "result"
+    ui._prompt, ui._options, ui._default = "Place your bets", game.options(), None
+    ui.console = recorder(W, 34)
+    ui.console.print(ui._render(), height=34)
+    save(ui.console, "baccarat", "Baccarat — Mini Baccarat")
+
+
 def main() -> None:
     print("Rendering README screens:")
     with tempfile.TemporaryDirectory() as tmp:
@@ -229,6 +296,8 @@ def main() -> None:
         check_screen(plugins)
         balance = store.load("Alex").balance
     blackjack_screen(balance)
+    roulette_screen(balance)
+    baccarat_screen(balance)
 
 
 if __name__ == "__main__":

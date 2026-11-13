@@ -58,6 +58,24 @@ Type a name to sit down. Regulars are listed with their balance and when they la
 
 Choosing a table hands the terminal to the game. Here, [AI Blackjack](https://github.com/ianjackson8/ai_blackjack) is playing the High Roller table: 2 decks, no insurance, and bets from $100 to $5,000. The casino passed it those settings. Leave the table and you're back in the lobby with your new balance, logged and saved.
 
+### Roulette
+
+<picture>
+  <img alt="Roulette at the European table: the ball has landed on 17 black at the front of the wheel, a straight-up bet on 17 wins +$1,075, and the Bets and History panels show each payout and the last seven numbers" src="docs/readme/roulette.svg" width="100%">
+</picture>
+
+Move around the layout and drop chips on straight-ups, splits, streets, dozens and colours. Then spin. The ball runs the rim for about three seconds, drops, bounces through a couple of pockets and settles. Nothing is revealed until it lands. Tables can run a European or American wheel, with or without la partage.
+
+### Baccarat
+
+<picture>
+  <img alt="Baccarat at a $5–$500 Mini Baccarat table: the Player wins 5 to 2 on a third card, the $100 Player bet pays +$100, the lost $10 Tie bet is a dimmed chip pile, and the Big Road and Bead Plate scoreboards track the shoe" src="docs/readme/baccarat.svg" width="100%">
+</picture>
+
+Punto Banco: back the Player, the Banker or a Tie, plus optional pair bets. The cards slide in and flip one by one, with the third-card rules played out for you. Big Road and Bead Plate scoreboards follow the shoe. Tables can change the decks, the Banker's commission and the Tie payout.
+
+### One house style
+
 Every game follows the same house style from the [plugin spec](docs/GAME_SPEC.md#5-design-guidelines):
 - a gold header showing the table and its limits
 - cards that slide in face down and flip

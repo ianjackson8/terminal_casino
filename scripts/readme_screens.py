@@ -313,6 +313,65 @@ def craps_screen(balance: float) -> None:
     snap(ui, "craps", "Craps — Standard", W, 36)
 
 
+def slots_screen(balance: float) -> None:
+    mods = _import_game("slots", ["play_slots", "slots_tui"])
+    if mods is None:
+        return
+    ps, st = mods
+    settings = {**ps.load_settings(), "animate": False, "animate_reels": False, "log_game": False}
+    table = _table("slots", "Main Floor")
+    for seed in range(400):        # a real win of 5x or more, without free spins (those open their own screen)
+        ui = st.RichUI()
+        game = ps.SlotsGame("Alex", balance, table, settings, ui, rng=random.Random(seed), plugin_mode=True)
+        game.animate = False
+        game.line_bet = 0.25
+        spin = game.play_spin()
+        if spin.win >= 5 * spin.total_bet and not spin.free_spins_won:
+            break
+    ui._prompt, ui._options, ui._default = "Your bet", game.options(), "spin"
+    ui.console = recorder(W, 34)
+    ui.console.print(ui._render(), height=34)
+    save(ui.console, "slots", "Slots — Main Floor")
+
+
+def poker_screen(balance: float) -> None:
+    mods = _import_game("poker", ["play_poker", "poker_tui"])
+    if mods is None:
+        return
+    pp, pt = mods
+
+    class ScriptedUI(pt.RichUI):
+        '''Checks or calls every decision, and skips every pause, so a real hand plays itself.'''
+        def get_action(self, prompt, options, default=None):
+            values = [v for _, v, _ in options]
+            self._prompt, self._options, self._default = prompt, options, default
+            return ("call" if "call" in values else "deal" if "deal" in values else values[0]), None
+
+        def pause(self, seconds):
+            return True
+
+        def flip_card(self):
+            return True
+
+    settings = {**pp.load_settings(), "animate_cards": False, "deal_delay": 0, "bot_delay": 0, "log_game": False}
+    table = _table("poker", "$1/$2 No-Limit")
+    for seed in range(300):        # a hand the player wins at a showdown against at least one other player
+        ui = ScriptedUI()
+        game = pp.PokerGame("Alex", balance, table, settings, ui, rng=random.Random(seed), plugin_mode=True)
+        game.rack_up()
+        before = game.human.stack
+        game.play_hand()
+        live = [p for p in game.hand.players if not p.folded]
+        if game.human.stack > before + 10 and len(live) >= 2 and game.board_shown == 5:
+            break
+    opts = [(("enter", " "), "deal", "Deal"), ("?", "help", "Rules"), (("tab",), "tab", "Panel"),
+            (("q", "Q", "esc"), "leave", "Leave table")]
+    ui._prompt, ui._options, ui._default = "Next hand", opts, "deal"
+    ui.console = recorder(W, 34)
+    ui.console.print(ui._render(), height=34)
+    save(ui.console, "poker", "Texas Hold'em — $1/$2 No-Limit")
+
+
 def main() -> None:
     print("Rendering README screens:")
     with tempfile.TemporaryDirectory() as tmp:
@@ -325,6 +384,8 @@ def main() -> None:
     blackjack_screen(balance)
     roulette_screen(balance)
     baccarat_screen(balance)
+    slots_screen(balance)
+    poker_screen(balance)
     craps_screen(balance)
 
 

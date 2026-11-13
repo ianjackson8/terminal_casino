@@ -110,6 +110,36 @@
                 "payback": "92%",
                 "autoplay": false
             }
+        },
+        {
+            "id": "poker",
+            "game": "poker",
+            "name": "$1/$2 No-Limit",
+            "min_bet": 2,
+            "max_bet": 200,
+            "rules": {}
+        },
+        {
+            "id": "poker_pot_limit",
+            "game": "poker",
+            "name": "$5/$10 Pot-Limit",
+            "min_bet": 10,
+            "max_bet": 1000,
+            "rules": {
+                "betting": "pot_limit",
+                "rake": "5%"
+            }
+        },
+        {
+            "id": "poker_heads_up",
+            "game": "poker",
+            "name": "Heads-Up High Roller",
+            "min_bet": 25,
+            "max_bet": 2500,
+            "rules": {
+                "seats": 2,
+                "bot_skill": "hard"
+            }
         }
     ],
     "disabled_tables": [],

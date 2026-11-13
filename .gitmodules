@@ -13,3 +13,6 @@
 [submodule "plugins/slots"]
 	path = plugins/slots
 	url = /Users/ianjackson/Documents/Misc/casino-games/slots
+[submodule "plugins/poker"]
+	path = plugins/poker
+	url = /Users/ianjackson/Documents/Misc/casino-games/poker

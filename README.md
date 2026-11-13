@@ -5,8 +5,8 @@
 <p align="center">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
-  <img alt="Games: 5" src="https://img.shields.io/badge/games-5%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots-FFD700?style=flat-square&labelColor=0B3D2E">
-  <img alt="Tables: 12" src="https://img.shields.io/badge/tables-12-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Games: 6" src="https://img.shields.io/badge/games-6%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots%20%C2%B7%20hold'em-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Tables: 15" src="https://img.shields.io/badge/tables-15-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Plugin spec v0.5" src="https://img.shields.io/badge/plugin%20spec-v0.5-D72027?style=flat-square">
 </p>
 
@@ -34,7 +34,7 @@ The lobby is a carousel. The game you're on sits in the middle in a gold frame, 
 
 ## What it does
 
-- **Runs a casino floor, not a menu.** Blackjack, Roulette, Baccarat, Craps and Slots, each at one or more tables, like a $5 table, a high-roller room and a single-deck variant. Each table has its own stakes and rules.
+- **Runs a casino floor, not a menu.** Blackjack, Roulette, Baccarat, Craps, Slots and Texas Hold'em, each at one or more tables, like a $5 table, a high-roller room and a single-deck variant. Each table has its own stakes and rules.
 - **Keeps one wallet across every game.** Your balance moves from table to table, and the casino records every result.
 - **Remembers you.** Type your name and you're back where you left off: balance, lifetime stats, history. It autosaves, or you can save by hand.
 - **Lets anyone add a game.** Drop a folder into `plugins/`, run the checker, and it's on the floor. Games stay runnable on their own.
@@ -81,6 +81,22 @@ Punto Banco: back the Player, the Banker or a Tie, plus optional pair bets. The 
 </picture>
 
 You're the shooter. Walk the cursor over the layout and drop chips on the Pass Line and its odds, Come and Don't Come, place bets, the Field, hardways and the one-roll props. Then throw the dice: they tumble across the felt and nothing pays until they land. Contract bets roll out before you leave, so the balance you take back is always exact. Tables set the maximum odds (1x up to 10x), what the Field's 12 pays, and whether props are on offer.
+
+### Slots
+
+<picture>
+  <img alt="Slots on the Main Floor: five reels of pixel-art symbols with two Wilds, a $5 spin paying $30 across 8 lines, the matching pays highlighted in the pay table, and the machine log listing each winning line" src="docs/readme/slots.svg" width="100%">
+</picture>
+
+Five reels and up to 20 lines, with Wilds and Diamond scatters. Three or more Diamonds anywhere award 10 free spins at double pay. Pick your lines and bet per line, then spin. The reels stop one by one and the winning lines light up. A spin only gets a **WIN** badge when you come out ahead: one that pays back less than it cost just says "Paid". Autoplay runs a set number of spins, and any key stops it. Each table sets its paylines, its payback (92%, 95% or 97%, exact and tested) and whether autoplay is allowed.
+
+### Texas Hold'em
+
+<picture>
+  <img alt="Texas Hold'em at the $1/$2 No-Limit table: a six-seat table where four bots have folded, Alex wins a $50 pot with a pair of nines against Ruby's 4♦ 5♦ at showdown, with WIN and LOSE badges by net and a Players panel of stacks and stats" src="docs/readme/poker.svg" width="100%">
+</picture>
+
+No-limit or pot-limit Hold'em against up to five bots, on easy, normal or hard. Cards slide in and flip, the bots take a moment to think (any key hurries them), and the showdown is revealed card by card. A table's minimum is its **big blind**, and its maximum is the **max buy-in**. You sit down with up to the max buy-in, the rest of your balance stays in your wallet and tops your stack up between hands, so you never risk more than the buy-in on one hand. Leaving mid-hand folds your cards, and the bots play it out without you. Tables set the seats (2–6), the betting, the rake and how good the bots are.
 
 ### One house style
 
@@ -206,7 +222,8 @@ python3 main.py
 | `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | local repo (submodule, no remote yet) | — |
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
 | `craps` | Craps | 1.0.1 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
-| `slots` | Slots | 1.0.0 | Main Floor · High Limit · Single Line | local repo (submodule, no remote yet) | — |
+| `slots` | Slots | 1.0.1 | Main Floor · High Limit · Single Line | local repo (submodule, no remote yet) | — |
+| `poker` | Texas Hold'em | 1.0.1 | $1/$2 No-Limit · $5/$10 Pot-Limit · Heads-Up High Roller | local repo (submodule, no remote yet) | — |
 
 ## Adding a game
 
@@ -251,9 +268,10 @@ The screenshots above are real renders of the UI, not mock-ups. Regenerate them 
 | ✅ | Baccarat: Punto Banco with Big Road and Bead Plate scoreboards |
 | ✅ | Craps: the full layout with odds, place bets and props; you're the shooter |
 | ✅ | Slots: five reels, 20 lines, free spins, with an exact and tested payback per table |
+| ✅ | Texas Hold'em: no-limit and pot-limit against bots, side pots, rake, heads-up |
 | ✅ | One house style across every game; carousel lobby |
-| ⏭️ | Next: publish Roulette, Baccarat, Craps and Slots to GitHub so clones get every game |
-| ⬜ | More games: poker… |
+| ⏭️ | Next: publish Roulette, Baccarat, Craps, Slots and Hold'em to GitHub so clones get every game |
+| ⬜ | More games: keno, video poker, three card poker… |
 | ⬜ | Remove the legacy `plugin_overrides` setting; richer per-game results in Stats |
 
 <p align="center">

@@ -5,8 +5,8 @@
 <p align="center">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
-  <img alt="Games: 4" src="https://img.shields.io/badge/games-4%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps-FFD700?style=flat-square&labelColor=0B3D2E">
-  <img alt="Tables: 9" src="https://img.shields.io/badge/tables-9-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Games: 5" src="https://img.shields.io/badge/games-5%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Tables: 12" src="https://img.shields.io/badge/tables-12-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Plugin spec v0.5" src="https://img.shields.io/badge/plugin%20spec-v0.5-D72027?style=flat-square">
 </p>
 
@@ -34,7 +34,7 @@ The lobby is a carousel. The game you're on sits in the middle in a gold frame, 
 
 ## What it does
 
-- **Runs a casino floor, not a menu.** Blackjack, Roulette and Baccarat, each at one or more tables, like a $5 table, a high-roller room and a single-deck variant. Each table has its own stakes and rules.
+- **Runs a casino floor, not a menu.** Blackjack, Roulette, Baccarat, Craps and Slots, each at one or more tables, like a $5 table, a high-roller room and a single-deck variant. Each table has its own stakes and rules.
 - **Keeps one wallet across every game.** Your balance moves from table to table, and the casino records every result.
 - **Remembers you.** Type your name and you're back where you left off: balance, lifetime stats, history. It autosaves, or you can save by hand.
 - **Lets anyone add a game.** Drop a folder into `plugins/`, run the checker, and it's on the floor. Games stay runnable on their own.
@@ -206,6 +206,7 @@ python3 main.py
 | `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | local repo (submodule, no remote yet) | — |
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
 | `craps` | Craps | 1.0.0 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
+| `slots` | Slots | 1.0.0 | Main Floor · High Limit · Single Line | local repo (submodule, no remote yet) | — |
 
 ## Adding a game
 
@@ -249,9 +250,10 @@ The screenshots above are real renders of the UI, not mock-ups. Regenerate them 
 | ✅ | Roulette: European and American wheels, la partage, a ball-and-wheel spin |
 | ✅ | Baccarat: Punto Banco with Big Road and Bead Plate scoreboards |
 | ✅ | Craps: the full layout with odds, place bets and props; you're the shooter |
+| ✅ | Slots: five reels, 20 lines, free spins, with an exact and tested payback per table |
 | ✅ | One house style across every game; carousel lobby |
-| ⏭️ | Next: publish Roulette, Baccarat and Craps to GitHub so clones get every game |
-| ⬜ | More games: slots, poker… |
+| ⏭️ | Next: publish Roulette, Baccarat, Craps and Slots to GitHub so clones get every game |
+| ⬜ | More games: poker… |
 | ⬜ | Remove the legacy `plugin_overrides` setting; richer per-game results in Stats |
 
 <p align="center">

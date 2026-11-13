@@ -10,3 +10,6 @@
 [submodule "plugins/craps"]
 	path = plugins/craps
 	url = /Users/ianjackson/Documents/Misc/casino-games/craps
+[submodule "plugins/slots"]
+	path = plugins/slots
+	url = /Users/ianjackson/Documents/Misc/casino-games/slots

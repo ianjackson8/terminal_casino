@@ -80,6 +80,36 @@
             "rules": {
                 "max_odds": "10x"
             }
+        },
+        {
+            "id": "slots",
+            "game": "slots",
+            "name": "Main Floor",
+            "min_bet": 1,
+            "max_bet": 100,
+            "rules": {}
+        },
+        {
+            "id": "slots_high_limit",
+            "game": "slots",
+            "name": "High Limit",
+            "min_bet": 20,
+            "max_bet": 2000,
+            "rules": {
+                "payback": "97%"
+            }
+        },
+        {
+            "id": "slots_single_line",
+            "game": "slots",
+            "name": "Single Line",
+            "min_bet": 1,
+            "max_bet": 50,
+            "rules": {
+                "paylines": 1,
+                "payback": "92%",
+                "autoplay": false
+            }
         }
     ],
     "disabled_tables": [],

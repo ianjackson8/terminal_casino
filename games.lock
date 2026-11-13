@@ -37,5 +37,10 @@
             "tag": "v1.1.1",
             "source": "~/Documents/Misc/casino-games/slots"
         }
+    },
+    "bundle": {
+        "version": "1.0.0-beta.3",
+        "sha256": "bf3421e9ff6f0ec1a53e9b0b0722c330c47df01fea0eeaae26a241cf70b26ef4",
+        "size": 552715
     }
 }

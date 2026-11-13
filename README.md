@@ -205,7 +205,7 @@ python3 main.py
 | `ai_blackjack` | Blackjack | 5.2.0 | Standard · High Roller · Single Deck | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) (submodule) | `pip install torch numpy` |
 | `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | local repo (submodule, no remote yet) | — |
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
-| `craps` | Craps | 1.0.0 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
+| `craps` | Craps | 1.0.1 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
 | `slots` | Slots | 1.0.0 | Main Floor · High Limit · Single Line | local repo (submodule, no remote yet) | — |
 
 ## Adding a game

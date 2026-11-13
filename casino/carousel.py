@@ -140,7 +140,8 @@ def art_blackjack(compact: bool) -> List[Line]:
 def art_baccarat(compact: bool) -> List[Line]:
     labels = [("PLAYER", "bold dodger_blue2"), ("      ", ""), ("BANKER", "bold red1")]
     if compact:
-        return [labels, [(" 9♦ ", RED_INK), ("        ", ""), (" 8♣ ", BLACK_INK)], [("NATURAL", GOLD)]]
+        return [[("PLAYER", "bold dodger_blue2"), ("  ", ""), ("BANKER", "bold red1")],
+                [(" 9♦ ", RED_INK), ("      ", ""), (" 8♣ ", BLACK_INK)], [("NATURAL", GOLD)]]
     cards = _side_by_side([_card("9", "♦"), _card("8", "♣")], gap=5)
     return [labels] + cards + [[("N A T U R A L", GOLD)]]
 
@@ -170,11 +171,70 @@ def art_generic(compact: bool) -> List[Line]:
     chips = [[(" 25 ", "bold white on green4")], [("▆▆▆▆", "green4")], [(" 5  ", "bold white on red3")],
              [("▆▆▆▆", "red3")], [("▆▆▆▆", "red3")]]
     if compact:
-        return [[(" ⚄ ", BLACK_INK), ("  ", ""), (" 25 ", "bold white on green4"), (" ", ""), (" 5 ", "bold white on red3")]]
+        return [[(" 25 ", "bold white on green4"), (" ", ""), (" 5 ", "bold white on red3")], [], [("♠ ♥ ♦ ♣", GOLD)]]
     return _side_by_side([chips, die], gap=3) + [[], [("♠ ♥ ♦ ♣", GOLD)]]
 
 
-ART = [("blackjack", art_blackjack), ("baccarat", art_baccarat), ("roulette", art_roulette)]
+DIE_FACE = "bold white on red3"
+PIPS = {1: ("     ", "  ●  ", "     "), 2: ("●    ", "     ", "    ●"), 3: ("●    ", "  ●  ", "    ●"),
+        4: ("●   ●", "     ", "●   ●"), 5: ("●   ●", "  ●  ", "●   ●"), 6: ("●   ●", "●   ●", "●   ●")}
+
+
+def _die(n: int) -> List[Line]:
+    edge = "grey85 on red3"
+    return ([[("╭─────╮", edge)]] + [[("│", edge), (row, DIE_FACE), ("│", edge)] for row in PIPS[n]]
+            + [[("╰─────╯", edge)]])
+
+
+def _pip_rows(*faces: int) -> List[Line]:
+    '''Dice as three rows of pips with no border, for compact cards.'''
+    return [_join([(f" {PIPS[f][r]} ", DIE_FACE) for f in faces], ("  ", "")) for r in range(3)]
+
+
+def art_craps(compact: bool) -> List[Line]:
+    if compact:
+        return _pip_rows(5, 2)
+    return _side_by_side([_die(5), _die(2)], gap=3) + [[], [("S E V E N", GOLD)]]
+
+
+def art_slots(compact: bool) -> List[Line]:
+    frame, dim, hot = "bold gold1", "grey50 on grey93", "bold red3 on grey93"
+
+    def reel_row(symbols: str, style: str, left: str = " ", right: str = " ") -> Line:
+        line: Line = [(left, "bold red1"), ("║", frame)]
+        for i, sym in enumerate(symbols):
+            if i:
+                line.append(("║", frame))
+            line.append((f" {sym} ", style))
+        return line + [("║", frame), (right, "bold red1")]
+
+    if compact:
+        return [reel_row("777", hot, "▶", "◀"), [], [("J A C K P O T", GOLD)]]
+    return [[(" ╔═══╦═══╦═══╗ ", frame)], reel_row("♣♥♦", dim), reel_row("777", hot, "▶", "◀"),
+            reel_row("♦♠♣", dim), [(" ╚═══╩═══╩═══╝ ", frame)], [], [("J A C K P O T", GOLD)]]
+
+
+def art_poker(compact: bool) -> List[Line]:
+    ranks = ["10", "J", "Q", "K", "A"]
+    if compact:
+        return [_join([(f" {r}♠ ", BLACK_INK) for r in ("A", "K", "Q")]), [], [("ROYAL FLUSH", GOLD)]]
+    # fanned hand: four slivers and the ace on top
+    rows: List[Line] = [[] for _ in range(5)]
+    for r in ranks[:-1]:
+        rows[0].append(("╭───", EDGE))
+        rows[1].append(("│", EDGE)); rows[1].append((f"{r:<3}", BLACK_INK))
+        rows[2].append(("│", EDGE)); rows[2].append((" ♠ ", BLACK_INK))
+        rows[3].append(("│", EDGE)); rows[3].append(("   ", CARD_BG))
+        rows[4].append(("╰───", EDGE))
+    for i, line in enumerate(_card("A", "♠")):
+        rows[i] += line
+    return rows + [[], [("R O Y A L   F L U S H", GOLD)]]
+
+
+# matched against the plugin's key and name; first match wins
+ART = [("blackjack", art_blackjack), ("baccarat", art_baccarat), ("roulette", art_roulette),
+       ("craps", art_craps), ("dice", art_craps), ("slot", art_slots), ("poker", art_poker),
+       ("hold", art_poker)]
 
 
 def game_art(plugin, compact: bool) -> List[Line]:
@@ -189,6 +249,16 @@ def game_art(plugin, compact: bool) -> List[Line]:
 
 def seg_len(line: Line) -> int:
     return sum(len(t) for t, _ in line)
+
+
+def crop(line: Line, width: int) -> Line:
+    '''Trim a line of art to `width` columns, keeping the middle (art is centred in its card).'''
+    extra = seg_len(line) - width
+    if extra <= 0:
+        return line
+    chars = [(ch, style) for text, style in line for ch in text]
+    left = extra // 2
+    return [(ch, style) for ch, style in chars[left:left + width]]
 
 
 class Canvas:
@@ -239,6 +309,7 @@ def _card_block(plugin, width: int, compact: bool, centre: bool, tight: bool = F
         title_style = "bold grey70"
 
     def framed(content: Line) -> Line:
+        content = crop(content, inner)
         pad = inner - seg_len(content)
         left = pad // 2
         return [(vt, frame), (" " * left, "")] + content + [(" " * (pad - left), ""), (vt, frame)]

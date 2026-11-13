@@ -7,7 +7,7 @@
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
   <img alt="Games: 3" src="https://img.shields.io/badge/games-3%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Tables: 7" src="https://img.shields.io/badge/tables-7-FFD700?style=flat-square&labelColor=0B3D2E">
-  <img alt="Plugin spec v0.4" src="https://img.shields.io/badge/plugin%20spec-v0.4-D72027?style=flat-square">
+  <img alt="Plugin spec v0.5" src="https://img.shields.io/badge/plugin%20spec-v0.5-D72027?style=flat-square">
 </p>
 
 <p align="center">
@@ -22,21 +22,23 @@
 
 ---
 
-**Terminal Casino** is a casino floor that runs in your terminal. Pick a table in the lobby, play, and walk back out with your winnings. One wallet follows you to every game, and your profile remembers your bankroll, your stats and every hand you've played.
+**Terminal Casino** is a casino floor that runs in your terminal. Slide through the games in the lobby, pick a table, play, and walk back out with your winnings. One wallet follows you to every game, and your profile remembers your bankroll, your stats and every hand you've played.
 
 The games aren't built into the casino. Each one is its own project, added as a plugin. The casino owns the lobby, the wallet and the bookkeeping. A game only has to take a balance, play, and hand a balance back. A compliance checker makes sure it plays by the rules before the casino lets it in.
 
 <picture>
-  <img alt="The lobby: three blackjack tables (Standard, High Roller, Single Deck) with their stakes and rules, a wallet panel and the Casino Floor log" src="docs/readme/lobby.svg" width="100%">
+  <img alt="The lobby carousel: Blackjack in a big gold-framed card in the middle, Roulette and Baccarat dimmed on either side, with Blackjack's three tables (Standard, High Roller, Single Deck) listed underneath, a wallet panel and the Casino Floor log" src="docs/readme/lobby.svg" width="100%">
 </picture>
+
+The lobby is a carousel. The game you're on sits in the middle in a gold frame, with its neighbours dimmed on either side. `←` `→` slides to the next game, `↑` `↓` picks one of its tables, and `↵` sits you down.
 
 ## What it does
 
-- **Runs a casino floor, not a menu.** A game can be offered at several tables, like a $5 table, a high-roller room and a single-deck variant. Each table has its own stakes and rules.
+- **Runs a casino floor, not a menu.** Blackjack, Roulette and Baccarat, each at one or more tables, like a $5 table, a high-roller room and a single-deck variant. Each table has its own stakes and rules.
 - **Keeps one wallet across every game.** Your balance moves from table to table, and the casino records every result.
 - **Remembers you.** Type your name and you're back where you left off: balance, lifetime stats, history. It autosaves, or you can save by hand.
 - **Lets anyone add a game.** Drop a folder into `plugins/`, run the checker, and it's on the floor. Games stay runnable on their own.
-- **Lives entirely in the terminal.** It's full-screen and driven by single keys, with card art, chip stacks and a balance chart.
+- **Lives entirely in the terminal.** It's full-screen and driven by single keys. Cards slide in and flip, the roulette ball runs the rim and drops into a pocket, and every game shares the same look and controls.
 
 ## A tour
 
@@ -55,6 +57,12 @@ Type a name to sit down. Regulars are listed with their balance and when they la
 </picture>
 
 Choosing a table hands the terminal to the game. Here, [AI Blackjack](https://github.com/ianjackson8/ai_blackjack) is playing the High Roller table: 2 decks, no insurance, and bets from $100 to $5,000. The casino passed it those settings. Leave the table and you're back in the lobby with your new balance, logged and saved.
+
+Every game follows the same house style from the [plugin spec](docs/GAME_SPEC.md#5-design-guidelines):
+- a gold header showing the table and its limits
+- cards that slide in face down and flip
+- chip stacks for your bets, and WIN / LOSE badges
+- `?` for the rules, `Q` to leave, and a session summary on the way out
 
 ### Tables, configured by the house
 
@@ -155,8 +163,9 @@ python3 main.py
 
 | Key | Lobby | Everywhere |
 |---|---|---|
-| `↑` `↓` / `k` `j` | Move between tables | Move |
-| `↵` or `1`–`9` | Sit down at a table | Confirm |
+| `←` `→` / `h` `l` | Slide to the previous / next game | |
+| `↑` `↓` / `k` `j` | Pick one of the game's tables | Move |
+| `↵` or `1`–`9` | Sit down at the table | Confirm |
 | `S` | Stats | |
 | `G` | Settings (tables, rules, profiles) | |
 | `R` | Rebuy, when you can't afford any table | |
@@ -168,8 +177,8 @@ python3 main.py
 | Key | Game | Version | Tables | Source | Extra requirements |
 |---|---|---|---|---|---|
 | `ai_blackjack` | Blackjack | 5.2.0 | Standard · High Roller · Single Deck | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) (submodule) | `pip install torch numpy` |
-| `roulette` | Roulette | 1.1.0 | European · American · High Roller · La Partage | local repo (submodule, no remote) | — |
-| `baccarat` | Baccarat | 1.0.0 | Punto Banco (default table) | local repo (submodule, no remote) | — |
+| `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | local repo (submodule, no remote yet) | — |
+| `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
 
 ## Adding a game
 
@@ -209,10 +218,11 @@ The screenshots above are real renders of the UI, not mock-ups. Regenerate them 
 | ✅ | Plugin spec and compliance check, enforced at startup |
 | ✅ | AI Blackjack, the first game |
 | ✅ | Several tables per game, with stakes and rules set by the house |
-| ⏭️ | Next: slot machine as the second game |
-| ✅ | Roulette: European and American wheels, la partage |
+| ✅ | Roulette: European and American wheels, la partage, a ball-and-wheel spin |
 | ✅ | Baccarat: Punto Banco with Big Road and Bead Plate scoreboards |
-| ⬜ | More games: poker, craps… |
+| ✅ | One house style across every game; carousel lobby |
+| ⏭️ | Next: publish Roulette and Baccarat to GitHub so clones get every game |
+| ⬜ | More games: slots, poker, craps… |
 | ⬜ | Remove the legacy `plugin_overrides` setting; richer per-game results in Stats |
 
 <p align="center">

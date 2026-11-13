@@ -14,13 +14,13 @@ Author: Ian Jackson
 from __future__ import annotations
 
 import io
+import json
 import random
 import sys
 import tempfile
 import time
 from contextlib import redirect_stdout
 from pathlib import Path
-from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -30,6 +30,7 @@ from rich.text import Text                # noqa: E402
 
 from casino import check as check_cli     # noqa: E402
 from casino import pages                  # noqa: E402
+from casino.carousel import Lobby         # noqa: E402
 from casino.compliance import check_plugin  # noqa: E402
 from casino.loader import discover_plugins  # noqa: E402
 from casino.profiles import Profile, ProfileStore  # noqa: E402
@@ -42,15 +43,10 @@ W, H = 128, 36
 NOW = time.time()
 DAY = 86400
 
+# the casino's real tables, so the screenshots show what a fresh clone shows
 SETTINGS = {
     "init_balance": 500, "autosave": True, "allow_rebuy": True, "enabled_plugins": [],
-    "tables": [
-        {"id": "ai_blackjack", "game": "ai_blackjack", "name": "Standard", "min_bet": 5, "max_bet": 500, "rules": {}},
-        {"id": "bj_high_roller", "game": "ai_blackjack", "name": "High Roller", "min_bet": 100, "max_bet": 5000,
-         "rules": {"num_decks": 2, "allow_insurance": False}},
-        {"id": "bj_single_deck", "game": "ai_blackjack", "name": "Single Deck", "min_bet": 10, "max_bet": 250,
-         "rules": {"num_decks": 1, "split_limit": "1", "allow_double_after_split": False}},
-    ],
+    "tables": json.loads((ROOT / "game_settings.json").read_text()).get("tables", []),
     "disabled_tables": [],
 }
 
@@ -124,7 +120,8 @@ def casino_screens(plugins, store) -> None:
     player.started = NOW - 47 * 60
     ui = RichUI()
     ui.player = player
-    ui.lobby = SimpleNamespace(tables=tables, cursor=1)
+    ui.lobby = Lobby(tables)
+    ui.lobby.move_table(1)                 # High Roller
     for line in [f"Welcome back, [bold]Alex[/]. Your balance is [green]{money(player.starting_balance)}[/].",
                  "[bold]Blackjack[/]: won [green]$60[/]",
                  "[bold]Blackjack[/]: lost [red]$100[/]",
@@ -132,8 +129,8 @@ def casino_screens(plugins, store) -> None:
         ui.log(line)
     ui._prompt = "[bold]Lobby[/]"
     from main import lobby_options
-    ui._options = lobby_options(tables, rebuy=False, autosave=True)
-    snap(ui, "lobby", "Terminal Casino — Lobby", height=24)
+    ui._options = lobby_options(ui.lobby, rebuy=False, autosave=True)
+    snap(ui, "lobby", "Terminal Casino — Lobby", height=32)
 
     # Stats: overview and games tabs
     for tab, name in ((0, "stats"), (1, "stats-games")):
@@ -152,7 +149,7 @@ def casino_screens(plugins, store) -> None:
     for name, keys in (("settings", ["down"] * 6), ("table-editor", ["down"] * 6 + ["edit_table"] + ["down"] * 4)):
         ui = RichUI()
         ui.player = player
-        ui.lobby = SimpleNamespace(tables=tables, cursor=0)
+        ui.lobby = Lobby(tables)
         seq = iter(keys)
 
         def choose(prompt, opts, default=None, seq=seq, ui=ui, name=name):

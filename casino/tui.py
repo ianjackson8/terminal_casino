@@ -194,7 +194,7 @@ class BaseUI:
     interactive = False
 
     def __init__(self):
-        self.lobby = None        # SimpleNamespace(plugins, cursor) while the lobby is showing
+        self.lobby = None        # casino.carousel.Lobby while the lobby is showing
         self.player = None       # casino.session.Player once seated
         self.splash_info = ""
         self.regulars = []       # recent profiles, shown on the welcome screen
@@ -207,6 +207,9 @@ class BaseUI:
         pass
 
     def refresh(self) -> None:
+        pass
+
+    def slide_lobby(self, direction: int) -> None:
         pass
 
     def set_overlay(self, title: str, renderable) -> None:
@@ -485,6 +488,8 @@ class RichUI(BaseUI):
         width, height = self.console.size
         side = width >= SIDE_MIN_WIDTH
         side_w = 46 if width >= 150 else 42
+        # short, narrow screen: the body gets the full height and the newest log line goes in the footer
+        self._inline_log = not side and height < 32
 
         layout = Layout()
         layout.split_column(
@@ -503,7 +508,7 @@ class RichUI(BaseUI):
             main = self._lobby()
 
         log_view = _LogView(list(self._log), "Casino Floor")
-        if self._overlay is not None:     # full-screen pages get the whole body
+        if self._overlay is not None or self._inline_log:   # full-screen pages get the whole body
             body.update(main)
         elif side:
             side_view = self._side(height - 7) if self.player is not None else log_view
@@ -530,6 +535,10 @@ class RichUI(BaseUI):
         lines = []
         if self._flash:
             lines.append(Text.from_markup(f"[bold red]✖ {self._flash}[/]"))
+        elif getattr(self, "_inline_log", False) and self._log and self._overlay is None:
+            latest = Text.from_markup(self._log[-1], style="grey70")
+            latest.no_wrap, latest.overflow = True, "ellipsis"
+            lines.append(latest)
         if self._prompt is not None:
             line = Text.from_markup(self._prompt)
             if self._buffer is not None:
@@ -576,65 +585,36 @@ class RichUI(BaseUI):
                      border_style="green4", style=FELT)
 
     def _lobby(self):
+        from casino.carousel import render_lobby
         from casino.tables import bet_range, rules_summary
-        tables, cursor = self.lobby.tables, self.lobby.cursor
-        if not tables:
-            empty = Group(Align.center(Text("The tables are empty.", "bold")),
-                          Align.center(Text("Add a game to plugins/, or open a table in Settings.", "grey62")))
-            return Panel(Align.center(empty, vertical="middle"), title="[bold]Lobby[/]",
-                         box=box.ROUNDED, border_style="green4", style=FELT)
-
+        lobby = self.lobby
         balance = self.player.balance if self.player else 0
-        grid = Table(box=None, show_header=False, expand=True, pad_edge=False, padding=(0, 1))
-        grid.add_column(width=2, no_wrap=True)
-        grid.add_column(width=3, no_wrap=True)
-        grid.add_column(ratio=1, no_wrap=True, overflow="ellipsis")
 
-        def game_title(plugin) -> Text:
-            title = Text(plugin.name, "bold")
-            if plugin.version:
-                title.append(f" v{plugin.version}", "grey50")
-            return title
+        class _Carousel:
+            def __rich_console__(self, console, options):
+                yield render_lobby(lobby, balance, money, bet_range, rules_summary,
+                                   options.max_width, options.height or console.height)
 
-        # group consecutive tables of the same game
-        groups = []
-        for i, t in enumerate(tables):
-            if groups and groups[-1][0] is t.plugin:
-                groups[-1][1].append((i, t))
-            else:
-                groups.append((t.plugin, [(i, t)]))
-
-        for g, (plugin, rows) in enumerate(groups):
-            if g:
-                grid.add_row("", "", "")
-            single = len(rows) == 1 and rows[0][1].is_default
-            if not single:
-                head = game_title(plugin)
-                if plugin.description:
-                    head.append(f"   {plugin.description}", "grey62")
-                grid.add_row("", "", head)
-            for i, t in rows:
-                selected = i == cursor
-                can_play = balance >= t.min_bet
-                pointer = Text("▶", "bold gold1") if selected else Text("")
-                num = Text(f" {i + 1} ", "bold black on gold1" if can_play else "grey50 on grey23") if i < 9 else Text("")
-                line = game_title(plugin) if single else Text(f"  {t.name}", "bold" if can_play else "grey50")
-                line.append(f"   {bet_range(t, money)}", "cyan" if can_play else "grey42")
-                if not can_play:
-                    line.append("  not enough chips", "red")
-                summary = rules_summary(t)
-                if summary:
-                    line.append(f"   {summary}", "grey70" if can_play else "grey42")
-                style = "on grey23" if selected else ""
-                grid.add_row(pointer, num, line, style=style)
-                if single and plugin.description:
-                    grid.add_row("", "", Text(plugin.description, "grey62"), style=style)
-
-        n = len(tables)
-        return Panel(grid, title="[bold]Lobby[/]", title_align="left",
-                     subtitle=f"[grey62]{n} table{'s' if n != 1 else ''} open[/]",
+        n = len(lobby.tables)
+        return Panel(_Carousel(), title="[bold]Lobby[/]", title_align="left",
+                     subtitle=f"[grey62]{len(lobby.games)} game{'s' if len(lobby.games) != 1 else ''} · "
+                              f"{n} table{'s' if n != 1 else ''} open[/]",
                      subtitle_align="right", box=box.ROUNDED, border_style="green4", style=FELT,
-                     padding=(1, 2))
+                     padding=(0, 1))
+
+    def slide_lobby(self, direction: int) -> None:
+        '''Animate the carousel after the centre game changed: cards glide in from `direction`.'''
+        from casino.carousel import SLIDE_FPS, SLIDE_S
+        lobby = self.lobby
+        frames = max(1, int(SLIDE_S * SLIDE_FPS))
+        try:
+            for i in range(frames + 1):
+                lobby.offset = direction * (1 - i / frames) ** 3      # ease out
+                self.refresh()
+                time.sleep(SLIDE_S / frames)
+        finally:
+            lobby.offset = 0.0
+            self.refresh()
 
     def _side(self, height: int):
         p = self.player

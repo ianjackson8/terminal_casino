@@ -8,12 +8,12 @@ import json
 import sys
 import time
 from pathlib import Path
-from types import SimpleNamespace
 
 from rich.padding import Padding
 from rich.table import Table
 from rich.text import Text
 
+from casino.carousel import Lobby
 from casino.loader import discover_plugins
 from casino.pages import settings_page, stats_page
 from casino.profiles import Profile, ProfileStore
@@ -175,12 +175,16 @@ def can_rebuy(player: Player, tables: list, settings: dict) -> bool:
     return player.balance < max(cheapest, 0.01)
 
 
-def lobby_options(tables: list, rebuy: bool, autosave: bool) -> list:
+def lobby_options(lobby, rebuy: bool, autosave: bool) -> list:
     options = []
-    if tables:
-        options += [(("up", "k"), "up", ""), (("down", "j"), "down", "Move"), (("enter", " "), "play", "Play")]
-        last = min(len(tables), 9)
-        options += [(str(i), str(i), None) for i in range(1, last + 1)]       # hidden: one per digit
+    if len(lobby.games) > 1:
+        options += [(("left", "h"), "left", ""), (("right", "l"), "right", "Game")]
+    if len(lobby.game_tables) > 1:
+        options += [(("up", "k"), "up", ""), (("down", "j"), "down", "Table")]
+    if lobby.games:
+        options.append((("enter", " "), "play", "Play"))
+        last = min(len(lobby.game_tables), 9)
+        options += [(str(i), str(i), None) for i in range(1, last + 1)]       # hidden: table by number
     if rebuy:
         options.append(("r", "rebuy", "Rebuy"))
     options += [("s", "stats", "Stats"), ("g", "settings", "Settings")]
@@ -191,7 +195,7 @@ def lobby_options(tables: list, rebuy: bool, autosave: bool) -> list:
 
 
 def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, player: Player) -> None:
-    lobby = ui.lobby = SimpleNamespace(tables=open_tables(load_tables(all_plugins, settings), settings), cursor=0)
+    lobby = ui.lobby = Lobby(open_tables(load_tables(all_plugins, settings), settings))
 
     while True:
         tables = lobby.tables
@@ -201,19 +205,20 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
             save_player(ui, store, player, quiet=True)
         rebuy = can_rebuy(player, tables, settings)
         action = ui.choose("[bold red]Out of chips[/]" if rebuy else "[bold]Lobby[/]",
-                           lobby_options(tables, rebuy, autosave))
+                           lobby_options(lobby, rebuy, autosave))
 
-        if action == "up":
-            lobby.cursor = (lobby.cursor - 1) % len(tables)
-        elif action == "down":
-            lobby.cursor = (lobby.cursor + 1) % len(tables)
+        if action in ("left", "right"):
+            step = -1 if action == "left" else 1
+            if lobby.move_game(step):
+                ui.slide_lobby(step)
+        elif action in ("up", "down"):
+            lobby.move_table(-1 if action == "up" else 1)
         elif action == "stats":
             stats_page(ui, player)
         elif action == "settings":
             if settings_page(ui, settings, ordered_plugins(all_plugins, settings), store, current=player.name):
                 save_settings(settings)
-                lobby.tables = open_tables(load_tables(all_plugins, settings, log=log_to(ui)), settings)
-                lobby.cursor = min(lobby.cursor, max(0, len(lobby.tables) - 1))
+                lobby.set_tables(open_tables(load_tables(all_plugins, settings, log=log_to(ui)), settings))
                 ui.log("[green]Settings saved.[/]")
         elif action == "save":
             save_player(ui, store, player)
@@ -235,11 +240,11 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
                     continue
             return
         elif action == "play" or action.isdigit():
-            idx = lobby.cursor if action == "play" else int(action) - 1
-            if not 0 <= idx < len(tables):
+            if action != "play" and not lobby.pick_table(int(action) - 1):
                 continue
-            lobby.cursor = idx
-            table = tables[idx]
+            table = lobby.table
+            if table is None:
+                continue
             if player.balance < table.min_bet:
                 ui.error(f"{table.label} needs at least {money(table.min_bet)} — you have {money(player.balance)}.")
                 continue

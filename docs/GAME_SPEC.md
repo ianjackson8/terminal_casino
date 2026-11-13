@@ -1,6 +1,6 @@
 # Terminal Casino — Game Plugin Spec
 
-**Status:** Draft v0.1 · 2026-11-12
+**Status:** Draft v0.2 · 2026-11-12
 **Applies to:** any game added under `plugins/` (Slot Machine, AI Blackjack, and future tables)
 
 This document defines what a game must do to plug into Terminal Casino, and how it should look and feel once it's in. Sections marked **MUST** are enforced by the casino or will break things if ignored. **SHOULD** items are house style. Items marked *(proposed)* aren't implemented in the casino yet. See [Open questions](#10-open-questions--proposed-changes).
@@ -22,7 +22,10 @@ A game never reads or writes the casino's wallet directly. The game gets a balan
 
 ## 2. Packaging
 
-Each game lives in its own repo, added as a git submodule:
+A game is a folder under `plugins/`. It can be either of these:
+
+- **Git-tracked:** its own repo, added as a git submodule (preferred for anything you'll keep developing).
+- **Plain folder:** copied straight in, with no git history of its own (fine for small or one-off games).
 
 ```
 terminal_casino/
@@ -40,10 +43,62 @@ terminal_casino/
 Add a game:
 
 ```bash
-git submodule add <repo-url> plugins/<key>
+git submodule add <repo-url> plugins/<key>      # git-tracked game
+cp -R ~/path/to/game plugins/<key>              # plain folder
 ```
 
 New games appear in the lobby automatically. You can hide a game from the lobby with the **Settings** page (it's stored in `disabled_plugins`). `enabled_plugins` optionally sets the lobby order.
+
+### 2.1 Versioning
+
+Every game has a version. `PLUGIN_META["version"]` is the **single source of truth**, whether or not the game is in git.
+
+**All games:**
+
+- **MUST:** declare the version in `PLUGIN_META["version"]` as a full [semver](https://semver.org) string, `"MAJOR.MINOR.PATCH"` (e.g. `"5.0.0"`, not `"v5.0"` or `"5.0"`).
+- **MUST:** bump it whenever the game's behaviour changes (see the table below). Two different builds of a game must never share a version.
+- **SHOULD:** keep a `CHANGELOG.md` in the game folder with one entry per version.
+
+When to bump:
+
+| Bump | When | Examples |
+|---|---|---|
+| **MAJOR** | The game's integration with the casino breaks, or the house edge / payouts change | `run()` signature changes; 3:2 blackjack becomes 6:5; save format changes incompatibly |
+| **MINOR** | New features that don't change the odds or the contract | New bot strategy, new animation, new settings |
+| **PATCH** | Bug fixes and polish only | Fix a split edge case, fix a layout glitch at 80×24 |
+
+**Git-tracked games** also tag each release:
+
+- **SHOULD:** tag the commit that sets the version with an annotated tag named `v` + the version:
+
+  ```bash
+  git tag -a v5.0.0 -m "AI Blackjack 5.0.0"
+  git push origin v5.0.0
+  ```
+
+- **SHOULD:** pin the casino's submodule to a tagged commit rather than an untagged work-in-progress commit. From the casino root, this prints the matching tag:
+
+  ```bash
+  git -C plugins/<key> describe --tags --exact-match    # → v5.0.0
+  ```
+
+- **MUST:** if a tag exists, it matches `PLUGIN_META["version"]`. A `v5.1.0` tag on a commit whose `plugin.py` says `5.0.0` is a bug.
+- **MUST NOT:** move or reuse a tag once it's pushed. A fix is a new PATCH release.
+
+Updating a git-tracked game in the casino:
+
+```bash
+cd plugins/<key>
+git fetch --tags
+git checkout v5.1.0
+cd ../..
+git add plugins/<key>
+git commit -m "Bump <key> to v5.1.0"
+```
+
+Updating a plain-folder game: replace the folder's contents and check that `PLUGIN_META["version"]` went up.
+
+*(proposed)* The loader warns in the Casino Floor log when `version` is missing or isn't valid semver, or when a git-tracked game's tag doesn't match it. The lobby and Stats page show each game's version.
 
 ---
 
@@ -58,7 +113,7 @@ A module-level dict:
 | `name` | `str` | yes | Display name in the lobby, logs, and stats. Short, e.g. "Blackjack". |
 | `description` | `str` | yes | One line, about 60 characters or fewer, shown under the name. |
 | `min_bet` | `float` | yes | Smallest bet the game accepts. The lobby blocks entry if the balance is below this. |
-| `version` | `str` | *(proposed)* | Semver of the game, shown in the stats screen. |
+| `version` | `str` | yes | Semver release, `"MAJOR.MINOR.PATCH"`. The source of truth for the game's version; must match its git tag, if it has one (see §2.1). |
 | `author` | `str` | *(proposed)* | Credit line. |
 
 The loader falls back to the directory name for `name`, `""` for `description`, and `0.0` for `min_bet`. Don't rely on those fallbacks.
@@ -267,6 +322,7 @@ PLUGIN_META = {
     "name": "Coin Flip",
     "description": "Call it in the air. Pays even money.",
     "min_bet": 1.0,
+    "version": "1.2.0",           # semver; if git-tracked, tag the release v1.2.0 (§2.1)
 }
 
 
@@ -290,7 +346,9 @@ def run(player_name: str, balance: float) -> float:
 
 Before enabling a game in `game_settings.json`:
 
-- [ ] `plugin.py` defines `PLUGIN_META` (name, description, min_bet) and `run(player_name, balance) -> float`.
+- [ ] `plugin.py` defines `PLUGIN_META` (name, description, min_bet, version) and `run(player_name, balance) -> float`.
+- [ ] `version` is full semver and was bumped from the last version the casino had.
+- [ ] If git-tracked: `git -C plugins/<key> describe --tags --exact-match` prints the matching `v` tag, and the tag is pushed to the game's remote.
 - [ ] The casino starts quickly with the plugin enabled (no heavy imports at module level).
 - [ ] The game opens from the lobby, plays a round, and **Leave table** returns to the lobby with the right balance (check the Stats page records it).
 - [ ] Opening the game twice in one session works (no leftover state).
@@ -317,6 +375,7 @@ Before enabling a game in `game_settings.json`:
   - the end-of-game `print_after` stats moved inside the UI (§4.1)
   - save/load turned off for the human balance in plugin mode
   - single human seat
+  - version string switched from `v5.0` to semver (`5.0.0`) in `PLUGIN_META`, plus an annotated `v5.0.0` tag on the release commit (it's a git repo)
 
 ---
 

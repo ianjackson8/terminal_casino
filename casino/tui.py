@@ -269,7 +269,8 @@ class _KeyReader:
             import tty
             self._fd = sys.stdin.fileno()
             self._old = termios.tcgetattr(self._fd)
-            tty.setcbreak(self._fd)  # keeps ISIG, so Ctrl-C still raises KeyboardInterrupt
+            # TCSADRAIN keeps keys typed while the casino was starting; keeps ISIG so Ctrl-C works
+            tty.setcbreak(self._fd, termios.TCSADRAIN)
         return self
 
     def __exit__(self, *exc):

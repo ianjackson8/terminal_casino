@@ -13,6 +13,7 @@ from rich.padding import Padding
 from rich.table import Table
 from rich.text import Text
 
+from casino import __version__
 from casino.carousel import Lobby
 from casino.loader import discover_plugins
 from casino.pages import settings_page, stats_page
@@ -258,6 +259,9 @@ def log_to(ui):
 
 
 def main() -> None:
+    if any(arg in ("--version", "-V") for arg in sys.argv[1:]):
+        print(f"Terminal Casino {__version__}")
+        return
     settings = load_settings()
     store = ProfileStore(PROFILES_DIR)
     ui = make_ui()

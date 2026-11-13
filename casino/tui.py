@@ -21,6 +21,8 @@ from collections import deque
 from typing import List, Optional, Sequence, Tuple
 
 from rich import box
+
+from casino import __version__
 from rich.align import Align
 from rich.console import Console, Group
 from rich.layout import Layout
@@ -568,7 +570,8 @@ class RichUI(BaseUI):
     def _splash(self):
         logo = casino_logo()
         parts = [Align.center(logo), Text(""), Align.center(title_text()),
-                 Align.center(Text("pull up a chair · one wallet, every table", "grey62")), Text("")]
+                 Align.center(Text("pull up a chair · one wallet, every table", "grey62")),
+                 Align.center(Text(f"v{__version__}", "grey42")), Text("")]
         if self.splash_info:
             parts.append(Align.center(Text.from_markup(self.splash_info, style="grey62", justify="center")))
         if self.regulars:

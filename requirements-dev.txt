@@ -1,0 +1,2 @@
+# Development tools (not needed to play)
+pyte>=0.8   # terminal emulator used by scripts/game_review.py

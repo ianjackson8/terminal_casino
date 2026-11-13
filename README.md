@@ -168,7 +168,7 @@ python3 main.py
 | Key | Game | Version | Tables | Source | Extra requirements |
 |---|---|---|---|---|---|
 | `ai_blackjack` | Blackjack | 5.2.0 | Standard · High Roller · Single Deck | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) (submodule) | `pip install torch numpy` |
-| `roulette` | Roulette | 1.0.0 | European · American · High Roller · La Partage | local repo (submodule, no remote) | — |
+| `roulette` | Roulette | 1.1.0 | European · American · High Roller · La Partage | local repo (submodule, no remote) | — |
 | `baccarat` | Baccarat | 1.0.0 | Punto Banco (default table) | local repo (submodule, no remote) | — |
 
 ## Adding a game

@@ -1,0 +1,13 @@
+# Git internals (never tracked anyway)
+.git
+
+# Virtual environments
+path/
+venv/
+.venv/
+env/
+myenv/
+
+# Python
+__pycache__/
+*.py[cod]

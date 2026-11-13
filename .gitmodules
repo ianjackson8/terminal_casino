@@ -1,3 +1,6 @@
 [submodule "plugins/ai_blackjack"]
 	path = plugins/ai_blackjack
 	url = https://github.com/ianjackson8/ai_blackjack.git
+[submodule "plugins/roulette"]
+	path = plugins/roulette
+	url = /Users/ianjackson/Documents/Misc/casino-games/roulette

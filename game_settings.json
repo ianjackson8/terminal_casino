@@ -34,6 +34,34 @@
                 "split_limit": "1",
                 "allow_double_after_split": false
             }
+        },
+        {
+            "id": "roulette",
+            "game": "roulette",
+            "name": "European",
+            "min_bet": 1,
+            "max_bet": 500,
+            "rules": {}
+        },
+        {
+            "id": "roulette_american",
+            "game": "roulette",
+            "name": "American",
+            "min_bet": 5,
+            "max_bet": 1000,
+            "rules": {
+                "wheel": "american"
+            }
+        },
+        {
+            "id": "roulette_high_roller",
+            "game": "roulette",
+            "name": "High Roller \u00b7 La Partage",
+            "min_bet": 25,
+            "max_bet": 5000,
+            "rules": {
+                "la_partage": true
+            }
         }
     ],
     "disabled_tables": [],

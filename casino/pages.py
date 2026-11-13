@@ -53,12 +53,9 @@ def balance_chart(values: Sequence[float], width: int, height: int) -> Text:
         return Text("Play a few games to see your balance chart.", "grey50 italic")
     label_w = max(len(money(max(values))), len(money(min(values)))) + 1
     plot_w = width - label_w - 1
-    if len(values) > plot_w:   # downsample, always keeping the latest value
-        step = len(values) / plot_w
-        values = [values[min(len(values) - 1, int(i * step))] for i in range(plot_w - 1)] + [values[-1]]
-    elif len(values) * 2 <= plot_w:   # stretch short series so the chart fills the panel
-        k = plot_w // len(values)
-        values = [v for v in values for _ in range(k)]
+    if len(values) != plot_w:   # resample to exactly fill the width, always ending on the latest value
+        n = len(values)
+        values = [values[min(n - 1, i * n // plot_w)] for i in range(plot_w - 1)] + [values[-1]]
     start, lo, hi = values[0], min(values), max(values)
     span = (hi - lo) or 1
     levels = height * 8
@@ -149,7 +146,7 @@ def _overview(player, width: int, height: int):
     top.add_column(ratio=1)
     top.add_row(Panel(lifetime, title="[bold gold1]Lifetime[/]", border_style="grey42", box=box.ROUNDED),
                 Panel(session, title="[bold gold1]This visit[/]", border_style="grey42", box=box.ROUNDED))
-    chart_h = max(2, height - 11 - 4 - 3)     # tabs + kv panels + chart frame
+    chart_h = max(2, height - 11 - 3)         # lifetime panel (9 rows + border), chart border + axis
     chart = balance_chart(p.balance_series(), width - 4, min(chart_h, 12))
     return Group(top, Panel(chart, title="[bold gold1]Balance[/]", border_style="grey42", box=box.ROUNDED))
 
@@ -197,7 +194,8 @@ def _games(player, width: int, height: int):
             total.best = max(total.best, g.best); total.worst = min(total.worst, g.worst)
         add(Text(game, "bold"), total)
         for label, g in rows:
-            short = label[len(game) + 3:] if label.startswith(game + " · ") else label
+            # the game's original table is recorded under the plain game name
+            short = label[len(game) + 3:] if label.startswith(game + " · ") else "main table"
             add(Text("  " + short, "grey85"), g)
     return t
 

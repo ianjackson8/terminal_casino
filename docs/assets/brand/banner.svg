@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="Terminal Casino: one wallet, every table">
+  <title>Terminal Casino</title>
+  <defs>
+    <radialGradient id="felt" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#14583f"/>
+      <stop offset="0.6" stop-color="#0b3d2e"/>
+      <stop offset="1" stop-color="#06261c"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="0.5" stop-color="#ffd700"/>
+      <stop offset="1" stop-color="#c99a06"/>
+    </linearGradient>
+    <pattern id="weave" width="6" height="6" patternUnits="userSpaceOnUse">
+      <path d="M0 6 L6 0" stroke="#ffffff" stroke-opacity="0.025" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+    <!-- one chip seen from the side: body, edge spots, lighter top face -->
+    <g id="chip-red"><ellipse cx="0" cy="8" rx="34" ry="11" fill="#7a0f12"/><rect x="-34" y="0" width="68" height="8" fill="#b3161b"/><rect x="-22" y="0" width="8" height="8" fill="#f2f2f2"/><rect x="14" y="0" width="8" height="8" fill="#f2f2f2"/><ellipse cx="0" cy="0" rx="34" ry="11" fill="#d72027"/><ellipse cx="0" cy="0" rx="22" ry="7" fill="none" stroke="#f2f2f2" stroke-width="2" stroke-dasharray="5 4"/></g>
+    <g id="chip-green"><ellipse cx="0" cy="8" rx="34" ry="11" fill="#0d4d1f"/><rect x="-34" y="0" width="68" height="8" fill="#137a30"/><rect x="-22" y="0" width="8" height="8" fill="#f2f2f2"/><rect x="14" y="0" width="8" height="8" fill="#f2f2f2"/><ellipse cx="0" cy="0" rx="34" ry="11" fill="#1a9b3e"/><ellipse cx="0" cy="0" rx="22" ry="7" fill="none" stroke="#f2f2f2" stroke-width="2" stroke-dasharray="5 4"/></g>
+    <g id="chip-black"><ellipse cx="0" cy="8" rx="34" ry="11" fill="#050505"/><rect x="-34" y="0" width="68" height="8" fill="#1c1c1c"/><rect x="-22" y="0" width="8" height="8" fill="#e6e6e6"/><rect x="14" y="0" width="8" height="8" fill="#e6e6e6"/><ellipse cx="0" cy="0" rx="34" ry="11" fill="#2b2b2b"/><ellipse cx="0" cy="0" rx="22" ry="7" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-dasharray="5 4"/></g>
+    <g id="chip-purple"><ellipse cx="0" cy="8" rx="34" ry="11" fill="#2e0b4f"/><rect x="-34" y="0" width="68" height="8" fill="#4b1680"/><rect x="-22" y="0" width="8" height="8" fill="#ffd700"/><rect x="14" y="0" width="8" height="8" fill="#ffd700"/><ellipse cx="0" cy="0" rx="34" ry="11" fill="#6a22b0"/><ellipse cx="0" cy="0" rx="22" ry="7" fill="none" stroke="#ffd700" stroke-width="2" stroke-dasharray="5 4"/></g>
+    <!-- suits drawn as shapes, so they render without any particular font -->
+    <symbol id="spade" viewBox="0 0 20 20"><path d="M10 1C10 1 1 8 1 12.5C1 15 3 17 5.5 17C7.3 17 8.5 16 9.2 15L8 19H12L10.8 15C11.5 16 12.7 17 14.5 17C17 17 19 15 19 12.5C19 8 10 1 10 1Z"/></symbol>
+    <symbol id="heart" viewBox="0 0 20 20"><path d="M10 18.5C10 18.5 1 12.5 1 6.5C1 3.6 3.4 1.5 6 1.5C7.9 1.5 9.3 2.6 10 4C10.7 2.6 12.1 1.5 14 1.5C16.6 1.5 19 3.6 19 6.5C19 12.5 10 18.5 10 18.5Z"/></symbol>
+    <symbol id="diamond" viewBox="0 0 20 20"><path d="M10 1L17.5 10L10 19L2.5 10Z"/></symbol>
+    <symbol id="club" viewBox="0 0 20 20"><circle cx="10" cy="5.6" r="4.3"/><circle cx="5" cy="11.2" r="4.3"/><circle cx="15" cy="11.2" r="4.3"/><path d="M9 10L8 19H12L11 10Z"/></symbol>
+  </defs>
+
+  <!-- table -->
+  <rect x="4" y="4" width="1192" height="292" rx="28" fill="url(#felt)"/>
+  <rect x="4" y="4" width="1192" height="292" rx="28" fill="url(#weave)"/>
+  <rect x="14" y="14" width="1172" height="272" rx="20" fill="none" stroke="url(#gold)" stroke-width="3"/>
+  <rect x="22" y="22" width="1156" height="256" rx="15" fill="none" stroke="#ffd700" stroke-opacity="0.25" stroke-width="1"/>
+
+  <!-- left: chip stacks -->
+  <g filter="url(#shadow)">
+    <g transform="translate(92,212)"><use href="#chip-red"/><use href="#chip-red" y="-12"/><use href="#chip-red" y="-24"/></g>
+    <g transform="translate(168,224)"><use href="#chip-green"/><use href="#chip-green" y="-12"/><use href="#chip-green" y="-24"/><use href="#chip-green" y="-36"/><use href="#chip-green" y="-48"/></g>
+    <g transform="translate(128,252)"><use href="#chip-black"/><use href="#chip-black" y="-12"/></g>
+  </g>
+
+  <!-- left: die showing five -->
+  <g transform="translate(212,62) rotate(-12)" filter="url(#shadow)">
+    <rect width="70" height="70" rx="13" fill="#f4f4f0"/>
+    <rect width="70" height="70" rx="13" fill="none" stroke="#c9c9c0" stroke-width="2"/>
+    <circle cx="18" cy="18" r="6.5" fill="#1b1b1b"/><circle cx="52" cy="18" r="6.5" fill="#1b1b1b"/>
+    <circle cx="35" cy="35" r="6.5" fill="#d72027"/>
+    <circle cx="18" cy="52" r="6.5" fill="#1b1b1b"/><circle cx="52" cy="52" r="6.5" fill="#1b1b1b"/>
+  </g>
+
+  <!-- centre: suits + wordmark -->
+  <use href="#spade" x="524" y="78" width="26" height="26" fill="#ffffff"/>
+  <use href="#heart" x="566" y="78" width="26" height="26" fill="#ff4d4d"/>
+  <use href="#diamond" x="608" y="78" width="26" height="26" fill="#ff4d4d"/>
+  <use href="#club" x="650" y="78" width="26" height="26" fill="#ffffff"/>
+  <g font-family="'JetBrains Mono','SF Mono','Fira Code',Menlo,Consolas,'DejaVu Sans Mono',monospace" text-anchor="middle">
+    <text x="600" y="166" font-size="58" font-weight="800" fill="url(#gold)" letter-spacing="9" filter="url(#shadow)">TERMINAL</text>
+    <text x="600" y="222" font-size="58" font-weight="800" fill="url(#gold)" letter-spacing="9" filter="url(#shadow)">CASINO</text>
+    <text x="600" y="258" font-size="17" fill="#a8d5c0" letter-spacing="3">one wallet · every table · right in your terminal</text>
+  </g>
+
+  <!-- right: slot reel 7-7-7 -->
+  <g transform="translate(866,82)" filter="url(#shadow)">
+    <rect x="0" y="0" width="186" height="118" rx="12" fill="#1a1a1a" stroke="url(#gold)" stroke-width="4"/>
+    <g font-family="Georgia,'Times New Roman',serif" font-weight="900" text-anchor="middle">
+      <rect x="12" y="12" width="50" height="94" rx="6" fill="#f4f4f0"/>
+      <rect x="68" y="12" width="50" height="94" rx="6" fill="#f4f4f0"/>
+      <rect x="124" y="12" width="50" height="94" rx="6" fill="#f4f4f0"/>
+      <use href="#club" x="29" y="17" width="16" height="16" fill="#9a9a9a"/><use href="#heart" x="85" y="17" width="16" height="16" fill="#9a9a9a"/><use href="#diamond" x="141" y="17" width="16" height="16" fill="#9a9a9a"/>
+      <text x="37" y="74" font-size="40" fill="#d72027">7</text><text x="93" y="74" font-size="40" fill="#d72027">7</text><text x="149" y="74" font-size="40" fill="#d72027">7</text>
+      <use href="#diamond" x="29" y="84" width="16" height="16" fill="#9a9a9a"/><use href="#spade" x="85" y="84" width="16" height="16" fill="#9a9a9a"/><use href="#club" x="141" y="84" width="16" height="16" fill="#9a9a9a"/>
+    </g>
+    <path d="M-14 59 l10 -8 v16 z" fill="#ff4d4d"/>
+    <path d="M200 59 l-10 -8 v16 z" fill="#ff4d4d"/>
+  </g>
+
+  <!-- right: die showing three, and a lone chip -->
+  <g transform="translate(1078,186) rotate(14)" filter="url(#shadow)">
+    <rect width="62" height="62" rx="12" fill="#f4f4f0"/>
+    <rect width="62" height="62" rx="12" fill="none" stroke="#c9c9c0" stroke-width="2"/>
+    <circle cx="16" cy="16" r="6" fill="#1b1b1b"/><circle cx="31" cy="31" r="6" fill="#1b1b1b"/><circle cx="46" cy="46" r="6" fill="#1b1b1b"/>
+  </g>
+  <g transform="translate(1104,98)" filter="url(#shadow)"><use href="#chip-purple"/><use href="#chip-purple" y="-12"/></g>
+</svg>

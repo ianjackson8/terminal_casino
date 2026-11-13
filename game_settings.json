@@ -62,6 +62,24 @@
             "rules": {
                 "la_partage": true
             }
+        },
+        {
+            "id": "craps",
+            "game": "craps",
+            "name": "Standard",
+            "min_bet": 5,
+            "max_bet": 500,
+            "rules": {}
+        },
+        {
+            "id": "craps_high_roller",
+            "game": "craps",
+            "name": "High Roller \u00b7 10x Odds",
+            "min_bet": 25,
+            "max_bet": 5000,
+            "rules": {
+                "max_odds": "10x"
+            }
         }
     ],
     "disabled_tables": [],

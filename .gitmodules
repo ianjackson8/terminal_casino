@@ -7,3 +7,6 @@
 [submodule "plugins/baccarat"]
 	path = plugins/baccarat
 	url = /Users/ianjackson/Documents/Misc/casino-games/baccarat
+[submodule "plugins/craps"]
+	path = plugins/craps
+	url = /Users/ianjackson/Documents/Misc/casino-games/craps

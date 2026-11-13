@@ -286,6 +286,33 @@ def baccarat_screen(balance: float) -> None:
     save(ui.console, "baccarat", "Baccarat — Mini Baccarat")
 
 
+def craps_screen(balance: float) -> None:
+    mods = _import_game("craps", ["play_craps", "craps_tui"])
+    if mods is None:
+        return
+    pc, ct = mods
+    settings = {**pc.load_settings(), "animate_dice": False, "log_game": False}
+    ui = ct.RichUI()
+    game = pc.CrapsGame("Alex", balance, _table("craps", "Standard"), settings, ui, plugin_mode=True)
+    # point 6 with odds, a come bet travels to the 5 and takes odds, then a hard eight pays the props
+    game.add_bet("pass", 25)
+    game.roll(dice=(4, 2))
+    for key, amount in (("pass_odds", 100), ("place_8", 30), ("come", 25)):
+        game.add_bet(key, amount)
+    game.roll(dice=(2, 3))
+    for key, amount in (("come_odds_5", 50), ("hard_8", 5), ("field", 10)):
+        game.add_bet(key, amount)
+    game.roll(dice=(4, 4))
+    game.cursor = (0, 3)                      # on the Place 8, which just paid
+    for line in ("[bold]Roll 1[/] · 4-2 = 6 · The point is 6, easy.",
+                 "[bold]Roll 2[/] · 2-3 = 5 · Five, no field.", "  [grey62]Come moves to the 5[/]",
+                 "[bold]Roll 3[/] · 4-4 = [bold]8[/] · Hard eight.", "  Place 8 $30: [bold green]+$35[/]",
+                 "  Hard 8 $5: [bold green]+$45[/]", "  Field $10: [red3]-$10[/]"):
+        ui.log(line)
+    ui._prompt, ui._options, ui._default = game.prompt, game.options(), "bet"
+    snap(ui, "craps", "Craps — Standard", W, 36)
+
+
 def main() -> None:
     print("Rendering README screens:")
     with tempfile.TemporaryDirectory() as tmp:
@@ -298,6 +325,7 @@ def main() -> None:
     blackjack_screen(balance)
     roulette_screen(balance)
     baccarat_screen(balance)
+    craps_screen(balance)
 
 
 if __name__ == "__main__":

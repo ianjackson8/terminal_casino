@@ -5,8 +5,8 @@
 <p align="center">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
-  <img alt="Games: 3" src="https://img.shields.io/badge/games-3%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat-FFD700?style=flat-square&labelColor=0B3D2E">
-  <img alt="Tables: 7" src="https://img.shields.io/badge/tables-7-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Games: 4" src="https://img.shields.io/badge/games-4%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Tables: 9" src="https://img.shields.io/badge/tables-9-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Plugin spec v0.5" src="https://img.shields.io/badge/plugin%20spec-v0.5-D72027?style=flat-square">
 </p>
 
@@ -73,6 +73,14 @@ Move around the layout and drop chips on straight-ups, splits, streets, dozens a
 </picture>
 
 Punto Banco: back the Player, the Banker or a Tie, plus optional pair bets. The cards slide in and flip one by one, with the third-card rules played out for you. Big Road and Bead Plate scoreboards follow the shoe. Tables can change the decks, the Banker's commission and the Tie payout.
+
+### Craps
+
+<picture>
+  <img alt="Craps at the Standard table: the point is 6, the dice show a hard eight, the Place 8 pays +$35 and the Hard 8 pays +$45, a Come bet with odds sits on the 5, and the Shooter panel shows the hand and recent rolls" src="docs/readme/craps.svg" width="100%">
+</picture>
+
+You're the shooter. Walk the cursor over the layout and drop chips on the Pass Line and its odds, Come and Don't Come, place bets, the Field, hardways and the one-roll props. Then throw the dice: they tumble across the felt and nothing pays until they land. Contract bets roll out before you leave, so the balance you take back is always exact. Tables set the maximum odds (1x up to 10x), what the Field's 12 pays, and whether props are on offer.
 
 ### One house style
 
@@ -197,6 +205,7 @@ python3 main.py
 | `ai_blackjack` | Blackjack | 5.2.0 | Standard · High Roller · Single Deck | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) (submodule) | `pip install torch numpy` |
 | `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | local repo (submodule, no remote yet) | — |
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
+| `craps` | Craps | 1.0.0 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
 
 ## Adding a game
 
@@ -239,9 +248,10 @@ The screenshots above are real renders of the UI, not mock-ups. Regenerate them 
 | ✅ | Several tables per game, with stakes and rules set by the house |
 | ✅ | Roulette: European and American wheels, la partage, a ball-and-wheel spin |
 | ✅ | Baccarat: Punto Banco with Big Road and Bead Plate scoreboards |
+| ✅ | Craps: the full layout with odds, place bets and props; you're the shooter |
 | ✅ | One house style across every game; carousel lobby |
-| ⏭️ | Next: publish Roulette and Baccarat to GitHub so clones get every game |
-| ⬜ | More games: slots, poker, craps… |
+| ⏭️ | Next: publish Roulette, Baccarat and Craps to GitHub so clones get every game |
+| ⬜ | More games: slots, poker… |
 | ⬜ | Remove the legacy `plugin_overrides` setting; richer per-game results in Stats |
 
 <p align="center">

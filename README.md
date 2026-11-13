@@ -77,10 +77,10 @@ Punto Banco: back the Player, the Banker or a Tie, plus optional pair bets. The 
 ### Craps
 
 <picture>
-  <img alt="Craps at the Standard table: the point is 6, the dice show a hard eight, the Place 8 pays +$35 and the Hard 8 pays +$45, a Come bet with odds sits on the 5, and the Shooter panel shows the hand and recent rolls" src="docs/readme/craps.svg" width="100%">
+  <img alt="Craps at the Standard table, laid out like a real craps table: the point is 6, a hard eight has just been thrown onto the felt for +$70, the Place 8 and Hard 8 pay, a Come bet with odds sits in the 5 box, the lost Field bet is struck through, and the props panel shows the hardways, one-roll bets and C·E" src="docs/readme/craps.svg" width="100%">
 </picture>
 
-You're the shooter. Walk the cursor over the layout and drop chips on the Pass Line and its odds, Come and Don't Come, place bets, the Field, hardways and the one-roll props. Then throw the dice: they tumble across the felt and nothing pays until they land. Contract bets roll out before you leave, so the balance you take back is always exact. Tables set the maximum odds (1x up to 10x), what the Field's 12 pays, and whether props are on offer.
+You're the shooter at a table laid out like the real thing. Six number boxes each have a LOSE, number and WIN strip. Below them are the Don't Come bar, Come, the Field, the Don't Pass bar and the Pass Line with its odds. A props panel holds the hardways, Seven, Craps, the one-roll bets and C & E. Walk the cursor over the felt and drop chips, then throw. The dice are flung in from the right, hit the back wall, bounce and tumble to a stop, and nothing pays until they land. Contract bets roll out before you leave, so the balance you take back is always exact. Tables set the maximum odds (1x up to 10x), what the Field's 12 pays, and whether props are on offer.
 
 ### Slots
 
@@ -221,7 +221,7 @@ python3 main.py
 | `ai_blackjack` | Blackjack | 5.2.0 | Standard · High Roller · Single Deck | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) (submodule) | `pip install torch numpy` |
 | `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | local repo (submodule, no remote yet) | — |
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
-| `craps` | Craps | 1.0.1 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
+| `craps` | Craps | 1.1.0 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
 | `slots` | Slots | 1.0.1 | Main Floor · High Limit · Single Line | local repo (submodule, no remote yet) | — |
 | `poker` | Texas Hold'em | 1.0.2 | $1/$2 No-Limit · $5/$10 Pot-Limit · Heads-Up High Roller | local repo (submodule, no remote yet) | — |
 

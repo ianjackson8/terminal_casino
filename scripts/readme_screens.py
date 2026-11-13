@@ -303,7 +303,7 @@ def craps_screen(balance: float) -> None:
     for key, amount in (("come_odds_5", 50), ("hard_8", 5), ("field", 10)):
         game.add_bet(key, amount)
     game.roll(dice=(4, 4))
-    game.cursor = (0, 3)                      # on the Place 8, which just paid
+    game.cursor = "win_8"                     # on the Place 8 (the WIN strip of the 8), which just paid
     for line in ("[bold]Roll 1[/] · 4-2 = 6 · The point is 6, easy.",
                  "[bold]Roll 2[/] · 2-3 = 5 · Five, no field.", "  [grey62]Come moves to the 5[/]",
                  "[bold]Roll 3[/] · 4-4 = [bold]8[/] · Hard eight.", "  Place 8 $30: [bold green]+$35[/]",

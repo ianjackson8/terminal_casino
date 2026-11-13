@@ -5,8 +5,8 @@
 <p align="center">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
-  <img alt="Games: 2" src="https://img.shields.io/badge/games-2%20%C2%B7%20blackjack%20%C2%B7%20roulette-FFD700?style=flat-square&labelColor=0B3D2E">
-  <img alt="Tables: 6" src="https://img.shields.io/badge/tables-6-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Games: 3" src="https://img.shields.io/badge/games-3%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Tables: 7" src="https://img.shields.io/badge/tables-7-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Plugin spec v0.4" src="https://img.shields.io/badge/plugin%20spec-v0.4-D72027?style=flat-square">
 </p>
 
@@ -169,6 +169,7 @@ python3 main.py
 |---|---|---|---|---|---|
 | `ai_blackjack` | Blackjack | 5.2.0 | Standard · High Roller · Single Deck | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) (submodule) | `pip install torch numpy` |
 | `roulette` | Roulette | 1.0.0 | European · American · High Roller · La Partage | local repo (submodule, no remote) | — |
+| `baccarat` | Baccarat | 1.0.0 | Punto Banco (default table) | local repo (submodule, no remote) | — |
 
 ## Adding a game
 
@@ -210,6 +211,7 @@ The screenshots above are real renders of the UI, not mock-ups. Regenerate them 
 | ✅ | Several tables per game, with stakes and rules set by the house |
 | ⏭️ | Next: slot machine as the second game |
 | ✅ | Roulette: European and American wheels, la partage |
+| ✅ | Baccarat: Punto Banco with Big Road and Bead Plate scoreboards |
 | ⬜ | More games: poker, craps… |
 | ⬜ | Remove the legacy `plugin_overrides` setting; richer per-game results in Stats |
 

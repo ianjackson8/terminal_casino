@@ -4,3 +4,6 @@
 [submodule "plugins/roulette"]
 	path = plugins/roulette
 	url = /Users/ianjackson/Documents/Misc/casino-games/roulette
+[submodule "plugins/baccarat"]
+	path = plugins/baccarat
+	url = /Users/ianjackson/Documents/Misc/casino-games/baccarat

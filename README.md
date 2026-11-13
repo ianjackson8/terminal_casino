@@ -223,7 +223,7 @@ python3 main.py
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | local repo (submodule, no remote yet) | — |
 | `craps` | Craps | 1.0.1 | Standard · High Roller · 10x Odds | local repo (submodule, no remote yet) | — |
 | `slots` | Slots | 1.0.1 | Main Floor · High Limit · Single Line | local repo (submodule, no remote yet) | — |
-| `poker` | Texas Hold'em | 1.0.1 | $1/$2 No-Limit · $5/$10 Pot-Limit · Heads-Up High Roller | local repo (submodule, no remote yet) | — |
+| `poker` | Texas Hold'em | 1.0.2 | $1/$2 No-Limit · $5/$10 Pot-Limit · Heads-Up High Roller | local repo (submodule, no remote yet) | — |
 
 ## Adding a game
 

@@ -1,6 +1,6 @@
 # Terminal Casino — Game Plugin Spec
 
-**Status:** Draft v0.4 · 2026-11-12
+**Status:** Draft v0.5 · 2026-11-12
 **Applies to:** any game added under `plugins/` (Slot Machine, AI Blackjack, and future tables)
 
 This document defines what a game must do to plug into Terminal Casino, and how it should look and feel once it's in. Sections marked **MUST** are enforced by the casino or will break things if ignored. **SHOULD** items are house style. Items marked *(proposed)* aren't implemented in the casino yet. See [Open questions](#10-open-questions--proposed-changes).
@@ -330,7 +330,10 @@ Game-specific actions use one memorable letter (`H` hit, `S` stand, `D` double, 
 ### 5.5 Feel
 
 - Redraw only when something changes (draw thread plus a dirty flag, capped at about 30 fps). Don't auto-refresh the whole screen at a fixed rate.
-- Short animations are welcome (card flip, reel spin) but must stay under about 1 s, and should be skippable or turn-offable in the game's settings.
+- Animations are welcome, and every one **MUST** be skippable with any key. They should also be possible to turn off in the game's settings.
+  - **Routine beats** (dealing or turning a card, moving a chip) stay under about 1 s each. The reference is Blackjack's card: it slides in face down (~0.35 s, cubic ease-out), then flips (~0.30 s) to show a blue back turning face up.
+  - **A game's signature moment** (a roulette spin, a slot reel) may run up to about 4 s, easing out at the end. Roulette's ball spin is about 3.5 s.
+- Settle the money before an animation starts, so Ctrl-C or a skip mid-animation still returns the exact balance.
 - Hide information that hasn't been revealed yet: don't show totals or outcomes before the animation that reveals them finishes.
 - Fall back to plain `input()` / `print` when stdin or stdout isn't a TTY (tests, pipes).
 

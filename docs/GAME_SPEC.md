@@ -1,6 +1,6 @@
 # Terminal Casino — Game Plugin Spec
 
-**Status:** Draft v0.2 · 2026-11-12
+**Status:** Draft v0.3 · 2026-11-12
 **Applies to:** any game added under `plugins/` (Slot Machine, AI Blackjack, and future tables)
 
 This document defines what a game must do to plug into Terminal Casino, and how it should look and feel once it's in. Sections marked **MUST** are enforced by the casino or will break things if ignored. **SHOULD** items are house style. Items marked *(proposed)* aren't implemented in the casino yet. See [Open questions](#10-open-questions--proposed-changes).
@@ -98,7 +98,7 @@ git commit -m "Bump <key> to v5.1.0"
 
 Updating a plain-folder game: replace the folder's contents and check that `PLUGIN_META["version"]` went up.
 
-*(proposed)* The loader warns in the Casino Floor log when `version` is missing or isn't valid semver, or when a git-tracked game's tag doesn't match it. The lobby and Stats page show each game's version.
+The compliance check (§8.1) enforces this. A missing or invalid `version`, or a git tag that contradicts it, stops the game from loading. The lobby and Settings page show each game's version.
 
 ---
 
@@ -342,21 +342,55 @@ def run(player_name: str, balance: float) -> float:
 
 ---
 
-## 8. Acceptance checklist
+## 8. Compliance
 
-Before enabling a game in `game_settings.json`:
+### 8.1 Automated check
 
-- [ ] `plugin.py` defines `PLUGIN_META` (name, description, min_bet, version) and `run(player_name, balance) -> float`.
-- [ ] `version` is full semver and was bumped from the last version the casino had.
-- [ ] If git-tracked: `git -C plugins/<key> describe --tags --exact-match` prints the matching `v` tag, and the tag is pushed to the game's remote.
-- [ ] The casino starts quickly with the plugin enabled (no heavy imports at module level).
+Run the compliance check before adding a game, and again before each release:
+
+```bash
+python -m casino.check ~/code/my_game                 # a game folder anywhere, before adding it
+python -m casino.check ~/code/MyGame --key my_game    # if the folder name isn't the key it'll be installed as
+python -m casino.check ai_blackjack                   # an installed game, by key
+python -m casino.check                                # every installed game
+```
+
+Run it from the casino root. It prints a report for each game and a verdict: **Ready to add**, **Can be added with warnings**, or **Not compliant**. The exit code is `1` if any game has errors, so it can run in CI.
+
+**The casino runs the same checks at startup.** A game with **any error is not loaded**. The reason, and the command to run, appear in the Casino Floor log. Warnings don't block a game, but the log line still points you at the check.
+
+| Check | Level | Spec |
+|---|---|---|
+| `plugin.py` at the folder root; key is lowercase `snake_case` | error | §2 |
+| `plugin.py` parses; never calls `sys.exit` / `exit` / `quit` / `os._exit` / `raise SystemExit` | error | §3.2 |
+| `PLUGIN_META` is a dict with `name`, `description`, `min_bet` (number ≥ 0) and semver `version` | error | §3.1, §2.1 |
+| `name` > 24 chars, `description` > 60 chars, unknown `PLUGIN_META` fields (typos) | warning | §3.1 |
+| `run` exists and accepts `(player_name, balance)` | error | §3.2 |
+| `plugin.py` imports without raising, exiting, printing or calling `input()` | error | §4.4 |
+| No heavy modules (PyTorch, NumPy, Matplotlib, pandas…) imported at module level | error | §4.4 |
+| Import takes longer than 0.3 s | warning | §4.4 |
+| Top-level module names don't shadow the standard library, use `casino`/`plugins`, or clash with another installed game | error | §4.3 |
+| Generic top-level module names (`tui`, `utils`, `strategy`…) | warning | §4.3 |
+| Git-tracked: a version tag at HEAD matches `version`; `v<version>` isn't on a different commit | error | §2.1 |
+| Git-tracked: release isn't tagged; uncommitted changes | warning | §2.1 |
+| `requirements.txt` and `CHANGELOG.md` present *(dev check only)* | warning | §4.5, §2.1 |
+| Exit calls elsewhere in the game's code, outside `if __name__ == "__main__":` *(dev check only)* | warning | §3.2 |
+
+When two installed games clash on a module name, the game whose folder sorts **later** is the one blocked.
+
+### 8.2 Manual checklist
+
+The automated check can't play the game. Before enabling a game, also confirm:
+
+- [ ] `python -m casino.check <game>` passes with no errors, and any warnings are understood.
+- [ ] `version` was bumped from the last version the casino had.
+- [ ] If git-tracked: the release tag is pushed to the game's remote.
 - [ ] The game opens from the lobby, plays a round, and **Leave table** returns to the lobby with the right balance (check the Stats page records it).
 - [ ] Opening the game twice in one session works (no leftover state).
 - [ ] Ctrl-C in the middle of a round returns to the lobby with a clean terminal and an intact lobby display.
 - [ ] A forced exception inside the game shows the error in the lobby and rolls the balance back.
-- [ ] It never calls `sys.exit` / `quit` anywhere reachable from `run()`.
+- [ ] `sys.exit` / `quit` can't be reached from `run()` (follow up any "Exits in game code" warnings).
 - [ ] All file reads and writes are relative to the plugin dir; nothing new appears in the casino root.
-- [ ] No module-name collisions with other enabled plugins.
 - [ ] The balance can never go negative, and no money is created for the human player.
 - [ ] Usable at 80×24 and at ≥100 columns with the side panel.
 - [ ] Footer lists every live key; `Esc`/`Q` leaves; `?` shows the rules.

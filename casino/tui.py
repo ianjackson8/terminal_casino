@@ -593,6 +593,8 @@ class RichUI(BaseUI):
             pointer = Text("▶", "bold gold1") if selected else Text("")
             num = Text(f" {i + 1} ", "bold black on gold1" if can_play else "grey50 on grey23") if i < 9 else Text("")
             name = Text(plugin.name, "bold" if can_play else "grey50")
+            if plugin.version:
+                name.append(f" v{plugin.version}", "grey50")
             name.append(f"   min bet {money(plugin.min_bet)}", "cyan" if can_play else "grey42")
             if not can_play:
                 name.append("  not enough chips", "red")

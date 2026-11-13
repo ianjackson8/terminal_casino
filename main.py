@@ -243,8 +243,9 @@ def main() -> None:
     player = None
     try:
         ui.start()
-        all_plugins = discover_plugins(PLUGINS_DIR, enabled=[], overrides=settings["plugin_overrides"],
-                                       warn=lambda msg: ui.log(f"[yellow]{esc(msg)}[/]"))
+        all_plugins = discover_plugins(
+            PLUGINS_DIR, overrides=settings["plugin_overrides"],
+            log=lambda level, msg: ui.log(f"[{'red' if level == 'error' else 'yellow'}]{esc(msg)}[/]"))
         n = len(visible_plugins(all_plugins, settings))
         ui.splash_info = (f"New players buy in for [bold]{money(settings['init_balance'])}[/]  ·  "
                           f"{n} table{'s' if n != 1 else ''} open")

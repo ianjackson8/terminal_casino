@@ -1,8 +1,18 @@
-import importlib.util
-import sys
-from dataclasses import dataclass
+'''
+Plugin discovery. Every game folder under plugins/ is run through the compliance checks
+(casino.compliance); a game with any compliance error is not loaded.
+
+Author: Ian Jackson
+'''
+
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Dict, List
+
+from casino.compliance import check_plugin
+
+# log(level, message) with level "error" (game blocked) or "warn" (loaded, with warnings)
+LogFn = Callable[[str, str], None]
 
 
 @dataclass
@@ -13,56 +23,61 @@ class Plugin:
     min_bet: float
     run: Callable
     overrides: dict
+    version: str = ""
+    path: Path = None
+    warnings: List[str] = field(default_factory=list)
 
 
-def discover_plugins(plugins_dir: Path, enabled: list, overrides: dict,
-                     warn: Callable[[str], None] = print) -> list[Plugin]:
-    """
-    Scan plugins_dir for subdirectories containing plugin.py.
-    Returns registered Plugin objects in the order listed in enabled
-    (or discovery order if enabled is empty).
-    """
-    found: dict[str, Plugin] = {}
+@dataclass
+class Blocked:
+    key: str
+    errors: List[str]
 
+
+def _default_log(level: str, message: str) -> None:
+    print(f"  [loader] {message}")
+
+
+def discover_plugins(plugins_dir: Path, overrides: dict, log: LogFn = _default_log,
+                     blocked: List[Blocked] = None) -> List[Plugin]:
+    '''
+    Scan plugins_dir for game folders, check each one, and return the compliant ones in
+    folder-name order. Non-compliant games are logged and, if `blocked` is given, appended to it.
+    '''
+    found: List[Plugin] = []
+    taken: Dict[str, str] = {}     # module name -> plugin key, to catch collisions between games
+
+    if not plugins_dir.exists():
+        return found
     for subdir in sorted(plugins_dir.iterdir()):
-        if not subdir.is_dir():
+        if not subdir.is_dir() or subdir.name.startswith((".", "_")):
             continue
-        plugin_file = subdir / "plugin.py"
-        if not plugin_file.exists():
-            continue
-
         key = subdir.name
-        spec = importlib.util.spec_from_file_location(f"plugins.{key}.plugin", plugin_file)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[spec.name] = module
-        try:
-            spec.loader.exec_module(module)
-        except Exception as exc:
-            warn(f"Failed to load plugin '{key}': {exc}")
+        report = check_plugin(subdir, key=key, taken=taken)
+        if not report.ok:
+            errors = [f"{e.check}: {e.message}" for e in report.errors]
+            more = f" (+{len(errors) - 1} more)" if len(errors) > 1 else ""
+            log("error", f"Blocked '{key}': {errors[0]}{more}. Run: python -m casino.check {key}")
+            if blocked is not None:
+                blocked.append(Blocked(key, errors))
             continue
 
-        meta = getattr(module, "PLUGIN_META", None)
-        run_fn = getattr(module, "run", None)
-        if meta is None or run_fn is None:
-            warn(f"Plugin '{key}' missing PLUGIN_META or run() — skipped.")
-            continue
-
-        found[key] = Plugin(
+        for mod in report.modules:
+            taken.setdefault(mod, key)
+        meta = report.meta
+        warnings = [f"{w.check}: {w.message}" for w in report.warnings]
+        if warnings:
+            log("warn", f"{meta['name']} v{meta['version']} loaded with {len(warnings)} warning"
+                        f"{'s' if len(warnings) != 1 else ''}. Run: python -m casino.check {key}")
+        found.append(Plugin(
             key=key,
-            name=meta.get("name", key),
-            description=meta.get("description", ""),
-            min_bet=meta.get("min_bet", 0.0),
-            run=run_fn,
+            name=meta["name"],
+            description=meta["description"],
+            min_bet=float(meta["min_bet"]),
+            run=report.module.run,
             overrides=overrides.get(key, {}),
-        )
-
-    if enabled:
-        result = []
-        for k in enabled:
-            if k in found:
-                result.append(found[k])
-            else:
-                warn(f"Enabled plugin '{k}' not found in plugins/ — skipped.")
-        return result
-
-    return list(found.values())
+            version=meta["version"],
+            path=subdir,
+            warnings=warnings,
+        ))
+    return found

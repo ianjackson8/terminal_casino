@@ -330,7 +330,7 @@ def settings_page(ui, settings: dict, all_plugins: list, store, current: Optiona
                 t.add_row(pointer, item["label"], _fmt(item["kind"], work.get(item["key"])), item["desc"], style=style)
             elif kind == "plugin":
                 p = by_key[item]
-                desc = f"min bet {money(p.min_bet)} · {p.description}"
+                desc = f"v{p.version} · min bet {money(p.min_bet)} · {p.description}"
                 t.add_row(pointer, esc(p.name), _fmt("bool", item not in disabled), desc, style=style)
             else:
                 you = item.name.lower() == (current or "").lower()

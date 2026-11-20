@@ -45,8 +45,8 @@
         }
     },
     "bundle": {
-        "version": "1.0.0",
-        "sha256": "bf3421e9ff6f0ec1a53e9b0b0722c330c47df01fea0eeaae26a241cf70b26ef4",
-        "size": 552715
+        "version": "1.1.0",
+        "sha256": "eda458f471ebf43fa298839a0bf94d1b829eb852e6b06a93390b493a6422265b",
+        "size": 593209
     }
 }

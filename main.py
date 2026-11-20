@@ -15,10 +15,10 @@ from rich.text import Text
 
 from casino import __version__
 from casino.bundle import ensure_games, load_lock, needed
-from casino import loanshark
+from casino import achievements, bar, loanshark
 from casino.carousel import Lobby
 from casino.loader import discover_plugins
-from casino.pages import settings_page, stats_page
+from casino.pages import intro_page, settings_page, stats_page
 from casino.profiles import Profile, ProfileStore
 from casino.session import Player
 from casino.tables import build_tables, open_tables
@@ -197,7 +197,7 @@ def lobby_options(lobby, rebuy: bool, autosave: bool, in_debt: bool = False) -> 
         options.append(("r", "rebuy", "Loan shark"))
     if in_debt:
         options.append(("p", "pay", "Pay Vinnie"))
-    options += [("s", "stats", "Stats"), ("g", "settings", "Settings")]
+    options += [("b", "bar", "Bar"), ("s", "stats", "Stats"), ("g", "settings", "Settings"), ("?", "help", None)]
     if not autosave:
         options.append(("w", "save", "Save"))
     options.append((("q", "esc"), "quit", "Cash out"))
@@ -206,6 +206,18 @@ def lobby_options(lobby, rebuy: bool, autosave: bool, in_debt: bool = False) -> 
 
 def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, player: Player) -> None:
     lobby = ui.lobby = Lobby(open_tables(load_tables(all_plugins, settings), settings))
+    all_games = [p.name for p in all_plugins]
+    achieve = lambda **event: achievements.check(ui, player, all_games=all_games, **event)   # noqa: E731
+
+    # arriving: first-timers get the tour, Vinnie waits by the door for anyone who owes him
+    if not player.profile.intro_seen:
+        intro_page(ui, player, settings)
+        player.profile.intro_seen = True
+        player.dirty = True
+    if player.sobered_up:
+        ui.log("[grey62]You slept off last night's drinks. Luck's back to even.[/]")
+    loanshark.greet(ui, player)
+    achieve(kind="arrive")
 
     while True:
         tables = lobby.tables
@@ -225,7 +237,12 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
         elif action in ("up", "down"):
             lobby.move_table(-1 if action == "up" else 1)
         elif action == "stats":
-            stats_page(ui, player)
+            stats_page(ui, player, others=store.all())
+        elif action == "help":
+            intro_page(ui, player, settings)
+        elif action == "bar":
+            bar.visit(ui, player, on_drink=lambda cut_off: achieve(kind="drink", cut_off=cut_off,
+                                                                    luck=bar.luck(player.profile)))
         elif action == "settings":
             if settings_page(ui, settings, ordered_plugins(all_plugins, settings), store, current=player.name):
                 save_settings(settings)
@@ -235,6 +252,7 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
             save_player(ui, store, player)
         elif action == "rebuy":
             loanshark.offer_loan(ui, player, settings)
+            achieve(kind="borrowed")
         elif action == "pay":
             loanshark.pay(ui, player)
         elif action == "quit":
@@ -258,8 +276,13 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
             if player.balance < table.min_bet:
                 ui.error(f"{table.label} needs at least {money(table.min_bet)} — you have {money(player.balance)}.")
                 continue
+            before = player.balance
             if run_table(ui, table, player):
-                loanshark.after_round(ui, player, settings)
+                delta = player.balance - before
+                bar.after_round(ui, player, delta)
+                achieve(kind="round", delta=delta, before=before, min_bet=table.min_bet)
+                loanshark.after_round(ui, player, settings, delta)
+                achieve(kind="after_vinnie")
 
 
 #== Main ==#

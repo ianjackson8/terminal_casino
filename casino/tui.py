@@ -568,21 +568,17 @@ class RichUI(BaseUI):
                      subtitle="[grey50]Ctrl-C cashes out[/]", subtitle_align="right")
 
     def _splash(self):
-        logo = casino_logo()
-        parts = [Align.center(logo), Text(""), Align.center(title_text()),
+        roomy = self.console.size.height >= 34 or not self.regulars     # the leaderboard needs the logo's rows
+        parts = [Align.center(casino_logo()), Text("")] if roomy else []
+        parts += [Align.center(title_text()),
                  Align.center(Text("pull up a chair · one wallet, every table", "grey62")),
                  Align.center(Text(f"v{__version__}", "grey42")), Text("")]
         if self.splash_info:
             parts.append(Align.center(Text.from_markup(self.splash_info, style="grey62", justify="center")))
         if self.regulars:
-            regs = Table(box=box.SIMPLE, header_style="bold gold1", pad_edge=False, padding=(0, 2))
-            regs.add_column("Regulars", style="bold", no_wrap=True)
-            regs.add_column("Balance", justify="right", no_wrap=True)
-            regs.add_column("Last seen", style="grey62", no_wrap=True)
-            for prof in self.regulars[:5]:
-                regs.add_row(esc(prof.name), Text(money(prof.balance), "green" if prof.balance > 0 else "red"),
-                             ago(prof.last_played))
-            parts += [Text(""), Align.center(regs),
+            from casino.leaderboard import table as leaderboard
+            board = leaderboard(self.regulars, limit=5, wide=self.console.size.width >= 100)
+            parts += [Text(""), Align.center(Text("L E A D E R B O A R D", "bold gold1")), Align.center(board),
                       Align.center(Text("type a regular's name to pick up where they left off", "grey50"))]
         return Panel(Align.center(Group(*parts), vertical="middle"), box=box.ROUNDED,
                      border_style="green4", style=FELT)
@@ -637,6 +633,10 @@ class RichUI(BaseUI):
             extra += 1
         elif prof.rebuys:
             wallet.add_row("Rebuys", Text(str(prof.rebuys), "magenta"))
+            extra += 1
+        if prof.buzz:
+            from casino.bar import luck_text
+            wallet.add_row("Luck", luck_text(prof))
             extra += 1
         if p.dirty:
             save = Text("● unsaved", "yellow")

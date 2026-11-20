@@ -3,6 +3,45 @@
 All notable changes to Terminal Casino. Versions follow [semver](https://semver.org). Each game is
 versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has its own version.
 
+## [1.1.0] — 2026-11-19
+
+### The bar
+- **`B` in the lobby:** Lou pours soda ($2), beer ($6), a martini ($15) or top-shelf whiskey ($30).
+  Drinks raise your buzz, and your buzz sets your luck: up to +3 for a few drinks, down to −5 if you
+  overdo it.
+- **Luck is casino-side:** games keep their own odds. After a round, good luck may pay a hot-streak
+  bonus (10% of a win, up to $25); bad luck may cost a fumble (10% of the round, up to $50). The
+  chance is 10% per point of luck.
+- **Wears off:** buzz drops a step every round, and you start each visit sober.
+- **Can't be farmed:** two drinks between rounds at most, and soda only once you're drunk. The
+  bonuses are capped, so staying at +3 costs more in drinks than it pays: about $3.50 a round in
+  bonuses at most, against $6 a round in beer.
+
+### Achievements
+- **18 trophies,** some of them secret, for things like your first table, a $1,000 win, every game
+  on the floor, paying Vinnie on time, and getting cut off at the bar. They unlock with a line on the
+  Casino Floor. Older profiles get what they've already earned when they next sign in.
+- **Stats · Trophies** lists them all.
+
+### Leaderboard
+- **Every saved player ranked by lifetime net,** with balance, games, trophies and last seen. The top
+  five are on the welcome screen; the full list is in **Stats · Leaders**.
+
+### First-time welcome
+- **New players get a one-page tour:** the wallet, the bar, Vinnie, trophies and every key. `?` in
+  the lobby shows it again.
+
+### More from Vinnie
+- **He remembers:** paying a loan off on time cuts his next fee by 5% (down to 10%); a visit from
+  his boys raises it by 5% (up to 30%).
+- **New scenes:** he's waiting by the door when you sign in owing him, comes over when a big win
+  could pay him off, sends a free drink to players in good standing, and comments from the end of
+  the bar when you're drinking on his money.
+
+### Games in this release
+Unchanged from 1.0.0: Blackjack 5.2.0, Roulette 1.2.0, Baccarat 1.1.0, Craps 1.1.0, Slots 1.1.1
+and Texas Hold'em 1.0.2. The plugin spec is unchanged at v1.0.
+
 ## [1.0.0] — 2026-11-19
 
 The first stable release.
@@ -165,6 +204,7 @@ before 1.0.
 - **Legacy setting:** `plugin_overrides` is still read but not passed to games. Table rules replace
   it.
 
+[1.1.0]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.1.0
 [1.0.0]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0
 [1.0.0-beta.4]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.4
 [1.0.0-beta.3]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.3

@@ -104,7 +104,7 @@ def _tabs(names: Sequence[str], current: int) -> Text:
 
 #== Stats page ==#
 
-STAT_TABS = ("Overview", "Games", "History")
+STAT_TABS = ("Overview", "Games", "History", "Trophies", "Leaders")
 
 
 def _kv(rows) -> Table:
@@ -215,10 +215,12 @@ def _history(player, width: int, height: int):
     recent = p.history[-room:][::-1]
     series = [h["balance"] for h in p.history[-30:]]
     for i, h in enumerate(recent):
-        if h["game"] in ("Rebuy", "Loan"):
+        if h["game"] in ("Rebuy", "Loan", "Hot streak"):
             result = Text(f"+{money(h['delta'])} chips", "magenta")
         elif h["game"] in ("Repaid", "Collected"):
             result = Text(f"−{money(-h['delta'])} to Vinnie", "magenta")
+        elif h["game"].startswith("Bar · ") or h["game"] == "Fumble":
+            result = Text(f"−{money(-h['delta'])}", "cyan")
         else:
             result = net_text(h["delta"])
         when = datetime.fromtimestamp(h["t"]).strftime("%b %d %H:%M")
@@ -229,12 +231,42 @@ def _history(player, width: int, height: int):
     return t
 
 
-def stats_page(ui, player) -> None:
+def _trophies(player, width: int, height: int):
+    from casino import achievements
+    p = player.profile
+    t = Table(box=None, show_header=False, expand=True, pad_edge=False, padding=(0, 2))
+    t.add_column(no_wrap=True)
+    t.add_column(style="bold", no_wrap=True)
+    t.add_column(ratio=1)
+    t.add_column(style="grey62", no_wrap=True, justify="right")
+    for a in achievements.ALL:
+        when = p.achievements.get(a.id)
+        if when:
+            t.add_row(Text("★", "bold gold1"), Text(a.name, "bold gold1"), Text(a.desc, "grey85"),
+                      datetime.fromtimestamp(when).strftime("%b %d"))
+        elif a.secret:
+            t.add_row(Text("☆", "grey35"), Text("???", "grey42"), Text("A secret. Keep playing.", "grey42 italic"), "")
+        else:
+            t.add_row(Text("☆", "grey42"), Text(a.name, "grey50"), Text(a.desc, "grey50"), "")
+    head = Text.assemble(("Trophies  ", "bold gold1"), (achievements.progress(p), "bold"),
+                         ("  unlocked", "grey62"))
+    return Group(head, Text(""), t)
+
+
+def _leaders_view(others):
+    def view(player, width: int, height: int):
+        from casino.leaderboard import table
+        board = table(list(others), current=player.profile, limit=max(3, height - 4), wide=width >= 90)
+        return Group(Text("Every saved player, ranked by lifetime net.", "grey62"), board)
+    return view
+
+
+def stats_page(ui, player, others=()) -> None:
     if not ui.interactive:
         ui.show_info(f"Stats — {player.name}", _overview(player, 80, 30))
         return
     tab = 0
-    views = (_overview, _games, _history)
+    views = (_overview, _games, _history, _trophies, _leaders_view(others))
 
     def build(width, height):
         body = views[tab](player, width, height - 2)
@@ -255,6 +287,51 @@ def stats_page(ui, player) -> None:
                 tab = (tab + 1) % len(STAT_TABS)
             elif action.startswith("t"):
                 tab = int(action[1:])
+    finally:
+        ui.clear_overlay()
+
+
+#== First-time welcome ==#
+
+def intro_page(ui, player, settings: dict) -> None:
+    '''Shown once to a new player, and any time from the lobby with ?.'''
+    from casino import bar, loanshark
+    keys = Table.grid(padding=(0, 2))
+    keys.add_column(no_wrap=True)
+    keys.add_column()
+    for key, what in [("← →", "Walk the floor: one game at a time"), ("↑ ↓", "Pick a table at that game"),
+                      ("↵", "Sit down"), ("B", "The bar"), ("S", "Stats, trophies and the leaderboard"),
+                      ("G", "Settings"), ("?", "This page again"), ("Q", "Cash out")]:
+        keys.add_row(Text(f" {key} ", "bold black on gold1"), Text(what))
+
+    def section(title, body):
+        return Group(Text(title, "bold gold1"), Text.from_markup(body, style="grey85"), Text(""))
+
+    amount = money(loanshark.loan_amount(settings))
+    body = Group(
+        Text.assemble(("Welcome to the floor, ", "bold"), (player.name, "bold cyan"), (".", "bold")),
+        Text(""),
+        section("One wallet, every table",
+                f"You start with [green]{money(player.balance)}[/]. It goes with you to every game, and "
+                "every table has its own stakes. A round is one visit to a table."),
+        section("The bar",
+                f"{bar.BARTENDER} pours. A drink or two makes you a little luckier: now and then a win pays a "
+                "small bonus. Too many and luck turns bad, and you start dropping chips. Drinks wear off as "
+                "you play."),
+        section("Run dry?",
+                f"There's no rebuy. {loanshark.NAME} will lend you [green]{amount}[/], but he wants it back "
+                "on time, with interest. You don't want to be late."),
+        section("Trophies and the leaderboard",
+                "Earn trophies as you play, and climb the leaderboard by lifetime net. Both are in Stats."),
+        keys,
+    )
+    if not ui.interactive:
+        ui.show_info("Welcome to Terminal Casino", body)
+        return
+    from rich.align import Align
+    ui.set_overlay("[bold gold1]  Welcome to Terminal Casino  [/]", Align.center(body, vertical="middle", width=84))
+    try:
+        ui.choose("[bold]Ready?[/]", [(("enter", " ", "esc", "q", "?"), "ok", "Take a seat")])
     finally:
         ui.clear_overlay()
 

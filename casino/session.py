@@ -17,6 +17,10 @@ class Player:
         self.history: List[float] = [profile.balance]   # balance after each game this session
         self.games_played: dict = {}
         self.starting_debt = profile.debt                # owed to the loan shark when they sat down
+        self.drinks_this_round = 0                       # bar orders since the last table visit
+        self.vinnie_drink = False                        # Vinnie has sent a drink this visit
+        self.sobered_up = profile.buzz > 0               # slept off last visit's drinks
+        profile.buzz = 0
         self.started = time.time()
         self.dirty = not returning                       # unsaved changes?
         self.saved_at = None

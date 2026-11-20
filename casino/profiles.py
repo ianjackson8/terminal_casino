@@ -57,6 +57,11 @@ class Profile:
     rebuys: int = 0
     loans: int = 0                      # loans ever taken from the loan shark
     loan: Optional[dict] = None         # outstanding debt: {"owed", "borrowed", "due", "taken"}
+    standing: int = 0                   # with the loan shark: +1 per on-time payoff, -1 per collection
+    achievements: Dict[str, float] = field(default_factory=dict)   # id -> when it was unlocked
+    drinks: int = 0                     # drinks ever ordered at the bar
+    buzz: int = 0                       # how drunk right now; wears off a step per round
+    intro_seen: bool = False            # has seen the first-time welcome
     games: Dict[str, GameStats] = field(default_factory=dict)
     history: List[dict] = field(default_factory=list)   # {"t", "game", "delta", "balance"}
 
@@ -144,6 +149,7 @@ class Profile:
     def from_dict(cls, data: dict) -> "Profile":
         data = dict(data)
         data.pop("version", None)
+        data.setdefault("intro_seen", True)     # profiles from before the intro existed aren't new
         games = {k: GameStats(**v) for k, v in data.pop("games", {}).items()}
         return cls(games=games, **data)
 

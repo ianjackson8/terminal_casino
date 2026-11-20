@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version 1.0.0" src="https://img.shields.io/badge/version-1.0.0-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Version 1.1.0" src="https://img.shields.io/badge/version-1.1.0-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
   <img alt="Games: 6" src="https://img.shields.io/badge/games-6%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots%20%C2%B7%20hold'em-FFD700?style=flat-square&labelColor=0B3D2E">
@@ -38,7 +38,7 @@ The lobby is a carousel. The game you're on sits in the middle in a gold frame, 
 
 - **Runs a casino floor, not a menu.** Blackjack, Roulette, Baccarat, Craps, Slots and Texas Hold'em, each at one or more tables, like a $5 table, a high-roller room and a single-deck variant. Each table has its own stakes and rules.
 - **Keeps one wallet across every game.** Your balance moves from table to table, and the casino records every result.
-- **Remembers you.** Type your name and you're back where you left off: balance, lifetime stats, history. It autosaves, or you can save by hand.
+- **Remembers you.** Type your name and you're back where you left off: balance, lifetime stats, history and trophies, ranked on a leaderboard. It autosaves, or you can save by hand.
 - **Lets anyone add a game.** Drop a folder into `plugins/`, run the checker, and it's on the floor. Games stay runnable on their own.
 - **Lives entirely in the terminal.** It's full-screen and driven by single keys. Cards slide in and flip, the roulette ball runs the rim and drops into a pocket, and every game shares the same look and controls.
 
@@ -139,7 +139,7 @@ Open **Settings** (`G`) to add, duplicate, edit or close tables. Each game decla
   <img alt="The Stats Games tab: Blackjack totals with a row for each table, showing played, wins, losses, win rate, net, best, worst and time" src="docs/readme/stats-games.svg" width="100%">
 </picture>
 
-Three tabs: **Overview** (lifetime and this visit, plus a balance chart), **Games** (per table, totalled per game), and **History** (every result, newest first).
+Five tabs: **Overview** (lifetime and this visit, plus a balance chart), **Games** (per table, totalled per game), **History** (every result, newest first), **Trophies** (18 achievements, a few of them secret) and **Leaders** (every saved player, ranked by lifetime net). The top five also appear on the welcome screen.
 
 ### The loan shark
 
@@ -149,8 +149,24 @@ Run out of chips and there's no rebuy. Press `R` and Vinnie "The Vig" comes over
 - **Late:** 10% interest compounds every round you play past the due date, and the threats get darker.
 - **Ten rounds late:** his boys take every chip you have and put it toward the debt.
 - **Broke again:** he'll lend more on the same due date, up to a limit, then cut you off.
+- **He remembers:** pay on time and his next loan costs 15%, then 10%. Get collected and it's 25%, then 30%. He waits by the door when you come back owing him, and shows up when you win big.
 
 What you owe counts against your lifetime net, so the 20% fee and any late interest are real losses. The loan amount and term are in Settings, and the loan shark can be switched off there.
+
+### The bar
+
+Press `B` to visit Lou. Each drink adds to your buzz, and your buzz sets your luck:
+
+| Buzz | 1 | 2 | 3–4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|
+| Luck | +1 | +2 | **+3** | +1 | −1 | −3 | −5 |
+
+- **Lucky:** after a winning round there's a 10% chance per point of luck of a hot-streak bonus, 10% of the win (up to $25).
+- **Drunk:** after any round there's the same chance of a fumble: you knock over chips or overtip the dealer, 10% of the round (up to $50).
+- **It wears off:** buzz drops a step every round you play, and you start each visit sober.
+- **Lou keeps it honest:** two drinks between rounds at most, and soda only once you're drunk. Luck never changes a game's odds, only these small casino-side extras, and on average a drink costs more than the luck it buys.
+
+Soda ($2) brings you down a step. Beer is $6, a martini $15, and top-shelf whiskey $30.
 
 ### A bouncer for plugins
 
@@ -241,6 +257,8 @@ pip install -r requirements.txt && python3 main.py
 | `↵` or `1`–`9` | Sit down at the table | Confirm |
 | `S` | Stats | |
 | `G` | Settings (tables, rules, profiles) | |
+| `?` | The welcome page with every key | |
+| `B` | The bar | |
 | `R` | Visit the loan shark, when you can't afford any table | |
 | `P` | Pay the loan shark back, while you owe him | |
 | `Q` / `Esc` | Cash out | Back |
@@ -295,7 +313,7 @@ The screenshots above are real renders of the UI, not mock-ups. Regenerate them 
 
 ## Roadmap
 
-The current release is **1.0.0**. See the [changelog](CHANGELOG.md) for what's in it and the game versions it ships with. The [plugin spec](docs/GAME_SPEC.md) is frozen at v1.0: a game built to it keeps working in every 1.x release.
+The current release is **1.1.0**. See the [changelog](CHANGELOG.md) for what's in it and the game versions it ships with. The [plugin spec](docs/GAME_SPEC.md) is frozen at v1.0: a game built to it keeps working in every 1.x release.
 
 | | Milestone |
 |---|---|
@@ -313,6 +331,7 @@ The current release is **1.0.0**. See the [changelog](CHANGELOG.md) for what's i
 | ✅ | One house style across every game; carousel lobby |
 | ✅ | Games ship with each release as one bundle; a clone installs them on first launch |
 | ✅ | 1.0: plugin spec frozen; legacy `plugin_overrides` setting removed |
+| ✅ | 1.1: the bar, achievements, a leaderboard, a first-time welcome, more from Vinnie |
 | ⏭️ | More games: keno, video poker, three card poker… |
 | ⬜ | Richer per-game results in Stats |
 

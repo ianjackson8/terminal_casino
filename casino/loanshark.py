@@ -25,11 +25,22 @@ VIG = 0.20              # added up front: borrow $500, owe $600
 LATE_RATE = 0.10        # compounds every round past the due date
 COLLECT_AFTER = 10      # rounds overdue before the boys start taking chips
 MAX_LOANS_OWED = 4      # he won't lend once you owe this many loans' worth
+STANDING_STEP = 0.05    # each point of standing moves his vig by 5%, between 10% and 30%
 
 NAME = 'Vinnie "The Vig"'
 
 
-#== Settings ==#
+#== Settings and standing ==#
+
+def vig_for(profile) -> float:
+    '''His fee: 20%, less for players who pay on time, more for ones his boys had to visit.'''
+    return round(VIG - STANDING_STEP * max(-2, min(2, profile.standing)), 2)
+
+
+def standing_name(profile) -> str:
+    return {-2: "on his list", -1: "on thin ice", 0: "a stranger", 1: "good for it", 2: "family"}[
+        max(-2, min(2, profile.standing))]
+
 
 def loan_amount(settings: dict) -> float:
     return float(settings.get("loan_amount", 500))
@@ -186,11 +197,31 @@ def can_borrow(profile, settings: dict) -> bool:
     return profile.debt < loan_amount(settings) * (1 + VIG) * MAX_LOANS_OWED
 
 
+def _achieve(ui, player, **event) -> None:
+    from casino import achievements
+    achievements.check(ui, player, **event)
+
+
+GREET_OWED = [
+    "Look who's back. I was startin' to think you forgot about me.",
+    "Welcome back, friend. Your tab missed you.",
+]
+GREET_LATE = [
+    "There you are. My boys been drivin' past your place. Nice curtains.",
+    "You got some nerve walkin' in here. You got my money too?",
+]
+BIG_WIN = [
+    "Whoa, whoa — look at that pile. Funny, I was just thinkin' about our arrangement.",
+    "Nice score, pal. Real nice. Now's a beautiful time to settle up, don't you think?",
+]
+
+
 def offer_loan(ui, player, settings: dict) -> bool:
     '''The player is broke: Vinnie offers a loan. Returns True if they took it.'''
     p = player.profile
     amount, rounds = loan_amount(settings), loan_rounds(settings)
-    owed = round(amount * (1 + VIG), 2)
+    vig = vig_for(p)
+    owed = round(amount * (1 + vig), 2)
     if not can_borrow(p, settings):
         show(ui, "angry", [
             f"Another loan? You already owe me [bold red]{money(p.debt)}[/]. You got a problem, kid, "
@@ -209,20 +240,26 @@ def offer_loan(ui, player, settings: dict) -> bool:
         lines = [
             say(OFFER),
             f"I can put [bold green]{money(amount)}[/] in your hand right now. You pay me back "
-            f"[bold]{money(owed)}[/] inside [bold]{rounds} rounds[/]. That's {VIG:.0%} — a bargain, "
+            f"[bold]{money(owed)}[/] inside [bold]{rounds} rounds[/]. That's {vig:.0%} — a bargain, "
             "between friends.",
             f"Late? Then it's {LATE_RATE:.0%} more every round, and we stop bein' friends.",
         ]
         mood = "friendly"
+        if p.standing > 0:
+            lines.insert(1, "You paid me on time before. I remember that. You get the friends-and-family rate.")
+        elif p.standing < 0:
+            lines.insert(1, "Last time my boys had to come see you. So this time it costs more.")
+            mood = "business"
     choice = show(ui, mood, lines, [("y", "y", f"Take the {money(amount)}"), (("n", "esc"), "n", "No thanks")],
                   prompt=f"[bold]Take a {money(amount)} loan?[/]", ledger_of=p if p.loan else None)
     if choice != "y":
         ui.log(f"[grey62]{NAME} shrugs and lights another cigar.[/]")
         return False
-    p.borrow(amount, VIG, rounds)
+    p.borrow(amount, vig, rounds)
     player.money_moved()
     ui.log(f"[magenta]{NAME}:[/] +{money(amount)} in chips. You owe [red]{money(p.debt)}[/], "
            f"due in {max(p.rounds_left, 0)} rounds.")
+    _achieve(ui, player, kind="loan")
     return True
 
 
@@ -258,17 +295,23 @@ def pay(ui, player, mood: str = None) -> None:
                 continue
             amount = min(amount, full)
             break
+    on_time = p.rounds_left >= 0
     paid = p.repay(amount)
     player.money_moved()
     if p.loan is None:
         ui.log(f"[green]Paid {NAME} {money(paid)} — you're square.[/]")
-        show(ui, "friendly", [say(PAID_OFF)], [(("enter", "esc", " "), "ok", "Nod")])
+        lines = [say(PAID_OFF)]
+        if on_time:
+            p.standing = min(2, p.standing + 1)
+            lines.append(f"[green]On time, too. Next loan's {vig_for(p):.0%}. You're {standing_name(p)} now.[/]")
+        show(ui, "friendly", lines, [(("enter", "esc", " "), "ok", "Nod")])
+        _achieve(ui, player, kind="paid_off", on_time=on_time)
     else:
         ui.log(f"[yellow]Paid {NAME} {money(paid)}. Still owe {money(p.debt)}.[/]")
         show(ui, mood or mood_for(p), [say(PARTIAL)], [(("enter", "esc", " "), "ok", "Nod")], ledger_of=p)
 
 
-def after_round(ui, player, settings: dict) -> None:
+def after_round(ui, player, settings: dict, delta: float = 0.0) -> None:
     '''Back from a table: interest, reminders, threats, and — eventually — a visit from the boys.'''
     p = player.profile
     if not p.loan:
@@ -285,9 +328,20 @@ def after_round(ui, player, settings: dict) -> None:
                            "Two very large men lean over the table and help themselves to your chips."],
              [(("enter", "esc", " "), "ok", "Don't resist")], prompt="[bold red]Collection[/]", ledger_of=p)
         taken = p.repay(player.balance, label="Collected")
+        p.standing = max(-2, p.standing - 1)
         player.money_moved()
+        _achieve(ui, player, kind="collected")
         ui.log(f"[bold red]Vinnie's boys took {money(taken)}.[/] "
                + (f"You still owe {money(p.debt)}." if p.loan else "You're square — the hard way."))
+        return
+
+    if delta > 0 and player.balance >= p.debt and delta >= p.debt / 2:
+        choice = show(ui, mood_for(p), [say(BIG_WIN)],
+                      [("p", "pay", "Pay him"), (("n", "esc"), "n", "Not yet")], ledger_of=p, default="pay")
+        if choice == "pay":
+            pay(ui, player)
+        else:
+            ui.log(f"[red]{NAME}:[/] Your call. I'll remember it.")
         return
 
     if left > 3:
@@ -317,6 +371,21 @@ def after_round(ui, player, settings: dict) -> None:
         pay(ui, player, mood)
     elif left <= 0:
         ui.log(f"[red]{NAME}:[/] {esc(say(STIFFED))}")
+
+
+def greet(ui, player) -> None:
+    '''Signing in while in debt: Vinnie's waiting at the door.'''
+    p = player.profile
+    if not p.loan:
+        return
+    late = p.rounds_left < 0
+    options = [(("enter", "esc", " "), "ok", "Nod nervously")]
+    if p.balance > 0:
+        options.insert(0, ("p", "pay", "Pay him"))
+    choice = show(ui, mood_for(p), [say(GREET_LATE if late else GREET_OWED)], options, ledger_of=p,
+                  prompt="[bold]Vinnie's waiting by the door[/]")
+    if choice == "pay":
+        pay(ui, player)
 
 
 def farewell(ui, player) -> None:

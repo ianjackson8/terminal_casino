@@ -345,9 +345,9 @@ FIELDS = [
      "desc": "Save your profile after every game"},
     {"key": "allow_rebuy", "label": "Loan shark", "kind": "bool",
      "desc": "Vinnie offers a loan when you can't afford any table"},
-    {"key": "loan_amount", "label": "Loan amount", "kind": "money", "min": 1,
+    {"key": "loan_amount", "label": "Loan amount", "kind": "money", "min": 1, "default": 500,
      "desc": "Chips per loan (you owe 20% more)"},
-    {"key": "loan_rounds", "label": "Loan term", "kind": "int", "min": 1,
+    {"key": "loan_rounds", "label": "Loan term", "kind": "int", "min": 1, "default": 10,
      "desc": "Rounds (table visits) before the loan is due"},
 ]
 
@@ -578,7 +578,7 @@ def settings_page(ui, settings: dict, all_plugins: list, store, current: Optiona
             pointer = Text("▶", "bold gold1") if selected else Text("")
             style = "on grey23" if selected else ""
             if kind == "field":
-                t.add_row(pointer, item["label"], _fmt(item["kind"], work.get(item["key"])), item["desc"], style=style)
+                t.add_row(pointer, item["label"], _fmt(item["kind"], work.get(item["key"], item.get("default"))), item["desc"], style=style)
             elif kind == "game":
                 name = Text(item.name, "bold white")
                 name.append(f" v{item.version}", "grey50")
@@ -684,7 +684,7 @@ def settings_page(ui, settings: dict, all_plugins: list, store, current: Optiona
                     work[item["key"]] = not work.get(item["key"])
                     continue
                 while True:
-                    raw = ui.ask(f"[bold]{item['label']}[/]", default=f"{work.get(item['key'], 0):g}")
+                    raw = ui.ask(f"[bold]{item['label']}[/]", default=f"{work.get(item['key'], item.get('default', 0)):g}")
                     try:
                         if item["kind"] == "int":
                             if not raw.strip().isdigit() or int(raw) < item.get("min", 0):

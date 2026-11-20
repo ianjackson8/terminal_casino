@@ -197,6 +197,36 @@
                 "seats": 2,
                 "bot_skill": "hard"
             }
+        },
+        {
+            "id": "video_poker",
+            "game": "video_poker",
+            "name": "Jacks or Better 9/6",
+            "min_bet": 1,
+            "max_bet": 5,
+            "rules": {
+                "hold_hints": true
+            }
+        },
+        {
+            "id": "vp_bonus_poker",
+            "game": "video_poker",
+            "name": "Bonus Poker",
+            "min_bet": 5,
+            "max_bet": 25,
+            "rules": {
+                "variant": "bonus_poker"
+            }
+        },
+        {
+            "id": "vp_deuces_wild",
+            "game": "video_poker",
+            "name": "Deuces Wild",
+            "min_bet": 1,
+            "max_bet": 5,
+            "rules": {
+                "variant": "deuces_wild"
+            }
         }
     ],
     "disabled_tables": []

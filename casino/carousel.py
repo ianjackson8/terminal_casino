@@ -231,8 +231,18 @@ def art_poker(compact: bool) -> List[Line]:
     return rows + [[], [("R O Y A L   F L U S H", GOLD)]]
 
 
-# matched against the plugin's key and name; first match wins
-ART = [("blackjack", art_blackjack), ("baccarat", art_baccarat), ("roulette", art_roulette),
+def art_video_poker(compact: bool) -> List[Line]:
+    hand = [("J", "♠", BLACK_INK), ("J", "♥", RED_INK), ("J", "♣", BLACK_INK), ("9", "♦", RED_INK), ("4", "♠", BLACK_INK)]
+    held = ("HELD", "bold black on gold1")
+    if compact:
+        return [_join([(f"{r}{s}", ink) for r, s, ink in hand]), [], [("D R A W", GOLD)]]
+    cards = _join([(f" {r}{s} ", ink) for r, s, ink in hand])
+    holds = _join([held, held, held, ("    ", ""), ("    ", "")])
+    return [cards, holds, [], [("H O L D  ·  D R A W", GOLD)]]
+
+
+# matched against the plugin's key and name; first match wins ("video" before "poker")
+ART = [("video", art_video_poker), ("blackjack", art_blackjack), ("baccarat", art_baccarat), ("roulette", art_roulette),
        ("craps", art_craps), ("dice", art_craps), ("slot", art_slots), ("poker", art_poker),
        ("hold", art_poker)]
 

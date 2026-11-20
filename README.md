@@ -6,8 +6,8 @@
   <img alt="Version 1.1.0" src="https://img.shields.io/badge/version-1.1.0-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
-  <img alt="Games: 6" src="https://img.shields.io/badge/games-6%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots%20%C2%B7%20hold'em-FFD700?style=flat-square&labelColor=0B3D2E">
-  <img alt="Tables: 19" src="https://img.shields.io/badge/tables-19-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Games: 7" src="https://img.shields.io/badge/games-7%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots%20%C2%B7%20hold'em%20%C2%B7%20video%20poker-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Tables: 22" src="https://img.shields.io/badge/tables-22-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Plugin spec v1.0" src="https://img.shields.io/badge/plugin%20spec-v1.0-D72027?style=flat-square">
 </p>
 
@@ -36,7 +36,7 @@ The lobby is a carousel. The game you're on sits in the middle in a gold frame, 
 
 ## What it does
 
-- **Runs a casino floor, not a menu.** Blackjack, Roulette, Baccarat, Craps, Slots and Texas Hold'em, each at one or more tables, like a $5 table, a high-roller room and a single-deck variant. Each table has its own stakes and rules.
+- **Runs a casino floor, not a menu.** Blackjack, Roulette, Baccarat, Craps, Slots, Texas Hold'em and Video Poker, each at one or more tables, like a $5 table, a high-roller room and a single-deck variant. Each table has its own stakes and rules.
 - **Keeps one wallet across every game.** Your balance moves from table to table, and the casino records every result.
 - **Remembers you.** Type your name and you're back where you left off: balance, lifetime stats, history and trophies, ranked on a leaderboard. It autosaves, or you can save by hand.
 - **Lets anyone add a game.** Drop a folder into `plugins/`, run the checker, and it's on the floor. Games stay runnable on their own.
@@ -112,6 +112,14 @@ A spin only gets a **WIN** badge when you come out ahead: one that pays back les
 </picture>
 
 No-limit or pot-limit Hold'em against up to five bots, on easy, normal or hard. Cards slide in and flip, the bots take a moment to think (any key hurries them), and the showdown is revealed card by card. A table's minimum is its **big blind**, and its maximum is the **max buy-in**. You sit down with up to the max buy-in, the rest of your balance stays in your wallet and tops your stack up between hands, so you never risk more than the buy-in on one hand. Leaving mid-hand folds your cards, and the bots play it out without you. Tables set the seats (2–6), the betting, the rake and how good the bots are.
+
+### Video Poker
+
+<picture>
+  <img alt="Video Poker at the Jacks or Better 9/6 table: the paytable on top with the Full House row lit, five cards below, a WIN badge for a full house paying 45 coins, and a session panel" src="docs/readme/video-poker.svg" width="100%">
+</picture>
+
+A draw-poker machine: bet 1–5 coins, hold cards with `1`–`5`, then draw. The paytable is always on screen, and the row you hit lights up. Tables pick the game (Jacks or Better, Bonus Poker or Deuces Wild), full or short pay, and whether you can press `H` for the best hold, worked out exactly. The table minimum is the coin. A royal flush on five coins pays the 4,000-coin bonus. Every paytable's return with perfect play is calculated exactly: Jacks or Better 9/6 returns 99.54%, and full-pay Deuces Wild 100.76%.
 
 ### One house style
 
@@ -199,7 +207,7 @@ flowchart LR
   end
 
   subgraph plugins ["plugins/"]
-    bj["ai_blackjack<br/>v5.3.0"]
+    bj["ai_blackjack<br/>v5.3.1"]
     next["your game"]
   end
 
@@ -268,12 +276,13 @@ pip install -r requirements.txt && python3 main.py
 
 | Key | Game | Version | Tables | Source | Extra requirements |
 |---|---|---|---|---|---|
-| `ai_blackjack` | Blackjack | 5.3.0 | Standard · High Roller · Single Deck · Side Bets | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) | `pip install torch numpy` |
+| `ai_blackjack` | Blackjack | 5.3.1 | Standard · High Roller · Single Deck · Side Bets | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) | `pip install torch numpy` |
 | `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | bundled with the release | — |
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | bundled with the release | — |
 | `craps` | Craps | 1.1.0 | Standard · High Roller · 10x Odds | bundled with the release | — |
 | `slots` | Slots | 1.1.1 | Main Floor · High Limit · Single Line (Diamond Sevens) · Gem Mine · Brass Bell · Night Sky | bundled with the release | — |
 | `poker` | Texas Hold'em | 1.0.2 | $1/$2 No-Limit · $5/$10 Pot-Limit · Heads-Up High Roller | bundled with the release | — |
+| `video_poker` | Video Poker | 1.0.1 | Jacks or Better 9/6 · Bonus Poker · Deuces Wild | bundled with the release | — |
 
 ## Adding a game
 
@@ -332,7 +341,9 @@ The current release is **1.1.0**. See the [changelog](CHANGELOG.md) for what's i
 | ✅ | Games ship with each release as one bundle; a clone installs them on first launch |
 | ✅ | 1.0: plugin spec frozen; legacy `plugin_overrides` setting removed |
 | ✅ | 1.1: the bar, achievements, a leaderboard, a first-time welcome, more from Vinnie |
-| ⏭️ | More games: keno, video poker, three card poker… |
+| ✅ | Video Poker: Jacks or Better, Bonus Poker, Deuces Wild, with exact hold hints |
+| ✅ | Blackjack side bets (Perfect Pairs, 21+3) and up to three hands |
+| ⏭️ | More games: keno, three card poker, sic bo… |
 | ⬜ | Richer per-game results in Stats |
 
 <p align="center">

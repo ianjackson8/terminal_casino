@@ -121,6 +121,8 @@ def format_rule(spec: dict, value) -> str:
     label = spec.get("label", "?")
     if spec.get("type") == "bool":
         return label if value else f"no {label[0].lower() + label[1:]}"
+    if spec.get("type") == "choice" and isinstance(value, str) and value.islower() and "_" in value:
+        value = value.replace("_", " ").title()       # a code-style value: "bonus_poker" reads as "Bonus Poker"
     return f"{label} {value}"
 
 

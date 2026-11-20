@@ -38,16 +38,32 @@ versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has
   could pay him off, sends a free drink to players in good standing, and comments from the end of
   the bar when you're drinking on his money.
 
-### Blackjack 5.3.0: side bets and multi-hand
+### New game: Video Poker 1.0.1
+- **A draw-poker machine:** bet 1–5 coins, hold, draw, and get paid from a paytable that's always on
+  screen. Jacks or Better (9/6 or 8/5), Bonus Poker (8/5 or 7/5) and Deuces Wild (full pay or NSUD).
+- **Exact numbers:** every paytable's return with perfect play is calculated exactly, from 96.06% to
+  100.76%. Tables can offer `H` for the best hold, with what your hold is worth next to it.
+- **Three tables:** Jacks or Better 9/6 ($1–$5, with hints), Bonus Poker ($5–$25) and Deuces Wild
+  ($1–$5). The table minimum is the coin.
+
+### Blackjack 5.3.1: side bets and multi-hand
 - **Up to three hands at once** against one dealer, each with its own bet.
 - **Perfect Pairs** (6:1 to 25:1) and **21+3** (5:1 to 100:1) side bets, each switched on per table
   with its own limits.
 - **New Side Bets table:** $10–$500, three hands, both side bets at $5–$100 a hand.
 - **High Roller:** now three hands, with both side bets at $25–$1,000 a hand.
+- **5.3.1** speeds up a multi-hand deal (about 1.5 s for three hands), marks lost side bets under
+  each hand, and keeps the header from clipping at 80 columns.
+
+### Smaller changes
+- **Lobby:** Video Poker has its own card art. Table rules written in code style read as words:
+  "Game Bonus Poker", "Betting Pot Limit".
+- **Fix:** the Settings page no longer fails when the settings file has no loan amount or loan term.
 
 ### Games in this release
-Blackjack 5.3.0 (new); unchanged from 1.0.0: Roulette 1.2.0, Baccarat 1.1.0, Craps 1.1.0, Slots 1.1.1
-and Texas Hold'em 1.0.2. The plugin spec is unchanged at v1.0.
+Video Poker 1.0.1 (new) and Blackjack 5.3.1 (updated); unchanged from 1.0.0: Roulette 1.2.0,
+Baccarat 1.1.0, Craps 1.1.0, Slots 1.1.1 and Texas Hold'em 1.0.2. The plugin spec is unchanged at
+v1.0.
 
 ## [1.0.0] — 2026-11-19
 

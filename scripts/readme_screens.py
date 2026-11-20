@@ -389,6 +389,31 @@ def poker_screen(balance: float) -> None:
     save(ui.console, "poker", "Texas Hold'em — $1/$2 No-Limit")
 
 
+def video_poker_screen(balance: float) -> None:
+    mods = _import_game("video_poker", ["vp_game", "vp_tui", "vp_strategy"])
+    if mods is None:
+        return
+    vg, vt, vs = mods
+    settings = {**vg.load_settings(), "animate_cards": False, "celebrate": False, "log_game": False}
+    table = _table("video_poker", "Jacks or Better 9/6")
+    for seed in range(2000):       # a hand where the hinted hold draws to a full house or better
+        ui = vt.RichUI()
+        game = vg.VideoPokerGame("Alex", balance, table, settings, ui, rng=random.Random(seed), plugin_mode=True)
+        for _ in range(3):         # a short session first, so the side panel has numbers in it
+            game.deal()
+            game.held = [bool(vs.best_hold(vg.hold_values(game.cards, game.paytable, game.coins)) >> i & 1)
+                         for i in range(5)]
+            game.finish_hand(fast=True)
+        if game.result_category in ("full_house", "four_kind", "straight_flush", "royal_flush"):
+            break
+    opts = [(("1", "2", "3", "4", "5"), "coins", "Coins"), ("m", "max", "Max bet"), (("enter", " "), "deal", "Deal"),
+            ("h", "hints", "Hints"), ("?", "help", "Paytable"), (("q", "esc"), "leave", "Leave")]
+    ui._prompt, ui._options, ui._default = "Place your bet", opts, "deal"
+    ui.console = recorder(W, 34)
+    ui.console.print(ui._render(), height=34)
+    save(ui.console, "video-poker", "Video Poker — Jacks or Better 9/6")
+
+
 def main() -> None:
     print("Rendering README screens:")
     with tempfile.TemporaryDirectory() as tmp:
@@ -403,6 +428,7 @@ def main() -> None:
     baccarat_screen(balance)
     slots_screen(balance)
     poker_screen(balance)
+    video_poker_screen(balance)
     craps_screen(balance)
 
 

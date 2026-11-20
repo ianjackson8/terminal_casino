@@ -38,8 +38,15 @@ versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has
   could pay him off, sends a free drink to players in good standing, and comments from the end of
   the bar when you're drinking on his money.
 
+### Blackjack 5.3.0: side bets and multi-hand
+- **Up to three hands at once** against one dealer, each with its own bet.
+- **Perfect Pairs** (6:1 to 25:1) and **21+3** (5:1 to 100:1) side bets, each switched on per table
+  with its own limits.
+- **New Side Bets table:** $10–$500, three hands, both side bets at $5–$100 a hand.
+- **High Roller:** now three hands, with both side bets at $25–$1,000 a hand.
+
 ### Games in this release
-Unchanged from 1.0.0: Blackjack 5.2.0, Roulette 1.2.0, Baccarat 1.1.0, Craps 1.1.0, Slots 1.1.1
+Blackjack 5.3.0 (new); unchanged from 1.0.0: Roulette 1.2.0, Baccarat 1.1.0, Craps 1.1.0, Slots 1.1.1
 and Texas Hold'em 1.0.2. The plugin spec is unchanged at v1.0.
 
 ## [1.0.0] — 2026-11-19

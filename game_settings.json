@@ -22,7 +22,14 @@
             "max_bet": 5000,
             "rules": {
                 "num_decks": 2,
-                "allow_insurance": false
+                "allow_insurance": false,
+                "max_hands": 3,
+                "perfect_pairs": true,
+                "perfect_pairs_min": 25,
+                "perfect_pairs_max": 1000,
+                "twenty_one_plus_three": true,
+                "twenty_one_plus_three_min": 25,
+                "twenty_one_plus_three_max": 1000
             }
         },
         {
@@ -35,6 +42,22 @@
                 "num_decks": 1,
                 "split_limit": "1",
                 "allow_double_after_split": false
+            }
+        },
+        {
+            "id": "bj_side_bets",
+            "game": "ai_blackjack",
+            "name": "Side Bets",
+            "min_bet": 10,
+            "max_bet": 500,
+            "rules": {
+                "max_hands": 3,
+                "perfect_pairs": true,
+                "perfect_pairs_min": 5,
+                "perfect_pairs_max": 100,
+                "twenty_one_plus_three": true,
+                "twenty_one_plus_three_min": 5,
+                "twenty_one_plus_three_max": 100
             }
         },
         {

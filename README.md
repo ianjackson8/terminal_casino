@@ -7,7 +7,7 @@
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-0B3D2E?style=flat-square&logo=python&logoColor=FFD700">
   <img alt="Built with Rich" src="https://img.shields.io/badge/built%20with-rich-0B3D2E?style=flat-square">
   <img alt="Games: 6" src="https://img.shields.io/badge/games-6%20%C2%B7%20blackjack%20%C2%B7%20roulette%20%C2%B7%20baccarat%20%C2%B7%20craps%20%C2%B7%20slots%20%C2%B7%20hold'em-FFD700?style=flat-square&labelColor=0B3D2E">
-  <img alt="Tables: 18" src="https://img.shields.io/badge/tables-18-FFD700?style=flat-square&labelColor=0B3D2E">
+  <img alt="Tables: 19" src="https://img.shields.io/badge/tables-19-FFD700?style=flat-square&labelColor=0B3D2E">
   <img alt="Plugin spec v1.0" src="https://img.shields.io/badge/plugin%20spec-v1.0-D72027?style=flat-square">
 </p>
 
@@ -58,7 +58,7 @@ Type a name to sit down. Regulars are listed with their balance and when they la
   <img alt="AI Blackjack at the High Roller table: the dealer shows a 9, the player holds A♠ 7♦ for soft 18 with a $200 bet, and the footer offers Hit, Stand, Double, Rules and Leave table" src="docs/readme/blackjack.svg" width="100%">
 </picture>
 
-Choosing a table hands the terminal to the game. Here, [AI Blackjack](https://github.com/ianjackson8/ai_blackjack) is playing the High Roller table: 2 decks, no insurance, and bets from $100 to $5,000. The casino passed it those settings. Leave the table and you're back in the lobby with your new balance, logged and saved.
+Choosing a table hands the terminal to the game. Here, [AI Blackjack](https://github.com/ianjackson8/ai_blackjack) is playing the High Roller table: 2 decks, no insurance, and bets from $100 to $5,000. That table also deals up to three hands at once, with Perfect Pairs and 21+3 side bets. The casino passed it those settings. Leave the table and you're back in the lobby with your new balance, logged and saved.
 
 ### Roulette
 
@@ -199,7 +199,7 @@ flowchart LR
   end
 
   subgraph plugins ["plugins/"]
-    bj["ai_blackjack<br/>v5.2.0"]
+    bj["ai_blackjack<br/>v5.3.0"]
     next["your game"]
   end
 
@@ -268,7 +268,7 @@ pip install -r requirements.txt && python3 main.py
 
 | Key | Game | Version | Tables | Source | Extra requirements |
 |---|---|---|---|---|---|
-| `ai_blackjack` | Blackjack | 5.2.0 | Standard · High Roller · Single Deck | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) | `pip install torch numpy` |
+| `ai_blackjack` | Blackjack | 5.3.0 | Standard · High Roller · Single Deck · Side Bets | [ai_blackjack](https://github.com/ianjackson8/ai_blackjack) | `pip install torch numpy` |
 | `roulette` | Roulette | 1.2.0 | European · American · High Roller · La Partage | bundled with the release | — |
 | `baccarat` | Baccarat | 1.1.0 | Main table (Punto Banco) | bundled with the release | — |
 | `craps` | Craps | 1.1.0 | Standard · High Roller · 10x Odds | bundled with the release | — |

@@ -3,7 +3,7 @@
 All notable changes to Terminal Casino. Versions follow [semver](https://semver.org). Each game is
 versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has its own draft number.
 
-## [Unreleased]
+## [1.0.0-beta.4] — 2026-11-19
 
 ### The loan shark
 - **No more rebuys:** when you can't afford any table, Vinnie "The Vig" offers a $500 loan. You owe
@@ -17,6 +17,10 @@ versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has
   session summary show the debt; History lists loans, repayments and collections.
 - **Settings:** "Allow rebuys" is now "Loan shark"; new `loan_amount` (500) and `loan_rounds` (10).
   Existing profiles load unchanged, and their old rebuys stay in their buy-in.
+
+### Games in this release
+Unchanged from 1.0.0-beta.3: Blackjack 5.2.0, Roulette 1.2.0, Baccarat 1.1.0, Craps 1.1.0,
+Slots 1.1.1 and Texas Hold'em 1.0.2.
 
 ## [1.0.0-beta.3] — 2026-11-13
 
@@ -142,6 +146,7 @@ before 1.0.
 - **Legacy setting:** `plugin_overrides` is still read but not passed to games. Table rules replace
   it.
 
+[1.0.0-beta.4]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.4
 [1.0.0-beta.3]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.1

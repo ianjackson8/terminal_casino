@@ -15,6 +15,7 @@ from rich.text import Text
 
 from casino import __version__
 from casino.bundle import ensure_games, load_lock, needed
+from casino import loanshark
 from casino.carousel import Lobby
 from casino.loader import discover_plugins
 from casino.pages import settings_page, stats_page
@@ -30,7 +31,9 @@ PROFILES_DIR = ROOT / "profiles"
 DEFAULTS = {
     "init_balance": 100.0,
     "autosave": True,
-    "allow_rebuy": True,
+    "allow_rebuy": True,        # the loan shark offers a loan when you can't afford any table
+    "loan_amount": 500,
+    "loan_rounds": 10,          # rounds (table visits) until the loan is due
     "enabled_plugins": [],      # optional game order in the lobby; empty = discovery order
     "tables": [],               # extra tables per game (stakes + rules); see docs/GAME_SPEC.md §6
     "disabled_tables": [],      # table ids hidden from the lobby (toggled in Settings)
@@ -123,12 +126,14 @@ def summary_table(player: Player) -> Table:
     table.add_row("Leaving with", Text(money(player.balance), "bold green"))
     table.add_row("This visit", net_text(player.net))
     table.add_row("Lifetime", net_text(player.profile.net))
+    if player.profile.loan:
+        table.add_row("Owe Vinnie", Text(money(player.profile.debt), "bold red"))
     for game, count in player.games_played.items():
         table.add_row("", Text.assemble((game, "bold"), (f"  ×{count}", "grey62")))
     return table
 
 
-def run_table(ui, table, player: Player) -> None:
+def run_table(ui, table, player: Player) -> bool:
     '''Hand the terminal to a game at one of its tables, then take it back with the new balance.'''
     plugin = table.plugin
     balance_before = player.balance
@@ -153,11 +158,11 @@ def run_table(ui, table, player: Player) -> None:
     label = table.label
     if error == "interrupted":
         ui.log(f"[grey62]Left {esc(label)} with Ctrl-C — balance rolled back.[/]")
-        return
+        return False
     if error is not None:
         ui.log(f"[red]{esc(label)} crashed: {esc(error)}[/]")
         ui.error(f"Error in {label} — balance restored to {money(balance_before)}.")
-        return
+        return False
 
     player.record_game(label, balance_before, time.monotonic() - started, game=plugin.name)
     delta = player.balance - balance_before
@@ -167,17 +172,18 @@ def run_table(ui, table, player: Player) -> None:
         ui.log(f"[bold]{esc(label)}[/]: lost [red]{money(-delta)}[/]")
     else:
         ui.log(f"[bold]{esc(label)}[/]: broke even")
+    return True
 
 
 def can_rebuy(player: Player, tables: list, settings: dict) -> bool:
-    '''Rebuys are offered only when the player can't afford any open table.'''
+    '''The loan shark only shows up when the player can't afford any open table.'''
     if not settings.get("allow_rebuy", True):
         return False
     cheapest = min((t.min_bet for t in tables), default=1.0)
     return player.balance < max(cheapest, 0.01)
 
 
-def lobby_options(lobby, rebuy: bool, autosave: bool) -> list:
+def lobby_options(lobby, rebuy: bool, autosave: bool, in_debt: bool = False) -> list:
     options = []
     if len(lobby.games) > 1:
         options += [(("left", "h"), "left", ""), (("right", "l"), "right", "Game")]
@@ -188,7 +194,9 @@ def lobby_options(lobby, rebuy: bool, autosave: bool) -> list:
         last = min(len(lobby.game_tables), 9)
         options += [(str(i), str(i), None) for i in range(1, last + 1)]       # hidden: table by number
     if rebuy:
-        options.append(("r", "rebuy", "Rebuy"))
+        options.append(("r", "rebuy", "Loan shark"))
+    if in_debt:
+        options.append(("p", "pay", "Pay Vinnie"))
     options += [("s", "stats", "Stats"), ("g", "settings", "Settings")]
     if not autosave:
         options.append(("w", "save", "Save"))
@@ -206,8 +214,9 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
         if autosave and player.dirty:
             save_player(ui, store, player, quiet=True)
         rebuy = can_rebuy(player, tables, settings)
+        in_debt = player.profile.loan is not None and player.balance > 0
         action = ui.choose("[bold red]Out of chips[/]" if rebuy else "[bold]Lobby[/]",
-                           lobby_options(lobby, rebuy, autosave))
+                           lobby_options(lobby, rebuy, autosave, in_debt))
 
         if action in ("left", "right"):
             step = -1 if action == "left" else 1
@@ -225,11 +234,9 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
         elif action == "save":
             save_player(ui, store, player)
         elif action == "rebuy":
-            amount = float(settings["init_balance"])
-            if ui.choose(f"Rebuy for {money(amount)}? It counts against your lifetime net.",
-                         [("y", "y", "Rebuy"), ("n", "n", "Not now")]) == "y":
-                player.rebuy(amount)
-                ui.log(f"[magenta]Rebuy:[/] +{money(amount)} in chips.")
+            loanshark.offer_loan(ui, player, settings)
+        elif action == "pay":
+            loanshark.pay(ui, player)
         elif action == "quit":
             if ui.choose("Cash out and leave the casino?", [("y", "y", "Cash out"), ("n", "n", "Stay")]) != "y":
                 continue
@@ -240,6 +247,7 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
                     continue
                 if answer == "y" and not save_player(ui, store, player):
                     continue
+            loanshark.farewell(ui, player)
             return
         elif action == "play" or action.isdigit():
             if action != "play" and not lobby.pick_table(int(action) - 1):
@@ -250,7 +258,8 @@ def lobby_loop(ui, all_plugins: list, settings: dict, store: ProfileStore, playe
             if player.balance < table.min_bet:
                 ui.error(f"{table.label} needs at least {money(table.min_bet)} — you have {money(player.balance)}.")
                 continue
-            run_table(ui, table, player)
+            if run_table(ui, table, player):
+                loanshark.after_round(ui, player, settings)
 
 
 #== Main ==#

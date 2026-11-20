@@ -3,6 +3,21 @@
 All notable changes to Terminal Casino. Versions follow [semver](https://semver.org). Each game is
 versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has its own draft number.
 
+## [Unreleased]
+
+### The loan shark
+- **No more rebuys:** when you can't afford any table, Vinnie "The Vig" offers a $500 loan. You owe
+  $600 (a 20% fee), due in 10 rounds; a round is one visit to a table.
+- **He escalates:** a nod from the bar, then reminders as the due date gets close, then threats.
+  Every round past the due date adds 10% compound interest. At ten rounds late his boys take your
+  chips toward the debt.
+- **Paying back:** `P` in the lobby pays all or part of the debt. Taking another loan while you owe
+  adds to the debt and keeps the original due date. He stops lending at four loans' worth of debt.
+- **Debt is a loss:** lifetime and per-visit net subtract what you owe. The wallet, Stats and the
+  session summary show the debt; History lists loans, repayments and collections.
+- **Settings:** "Allow rebuys" is now "Loan shark"; new `loan_amount` (500) and `loan_rounds` (10).
+  Existing profiles load unchanged, and their old rebuys stay in their buy-in.
+
 ## [1.0.0-beta.3] — 2026-11-13
 
 ### Games ship with the casino

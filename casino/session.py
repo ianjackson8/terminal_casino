@@ -16,7 +16,7 @@ class Player:
         self.starting_balance = profile.balance
         self.history: List[float] = [profile.balance]   # balance after each game this session
         self.games_played: dict = {}
-        self.rebought = 0.0                              # money added by rebuys this session
+        self.starting_debt = profile.debt                # owed to the loan shark when they sat down
         self.started = time.time()
         self.dirty = not returning                       # unsaved changes?
         self.saved_at = None
@@ -40,9 +40,8 @@ class Player:
         self.history.append(self.balance)
         self.dirty = True
 
-    def rebuy(self, amount: float) -> None:
-        self.profile.rebuy(amount)
-        self.rebought += amount
+    def money_moved(self) -> None:
+        '''Call after the balance changes outside a game (a loan, a repayment, a collection).'''
         self.history.append(self.balance)
         self.dirty = True
 
@@ -52,8 +51,8 @@ class Player:
 
     @property
     def net(self) -> float:
-        '''This session's result, not counting rebuys.'''
-        return self.balance - self.starting_balance - self.rebought
+        '''This session's result: borrowed chips don't count, interest and fees do.'''
+        return (self.balance - self.profile.debt) - (self.starting_balance - self.starting_debt)
 
     @property
     def total_sessions(self) -> int:

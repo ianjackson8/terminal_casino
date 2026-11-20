@@ -346,6 +346,8 @@ The casino's `game_settings.json` holds the casino's settings and its **tables**
   "init_balance": 500,
   "autosave": true,
   "allow_rebuy": true,
+  "loan_amount": 500,
+  "loan_rounds": 10,
   "enabled_plugins": ["ai_blackjack", "slot_machine"],
   "tables": [
     {"id": "ai_blackjack", "game": "ai_blackjack", "name": "Standard", "min_bet": 5, "max_bet": 500, "rules": {}},

@@ -629,7 +629,13 @@ class RichUI(BaseUI):
         wallet.add_row("This visit", net_text(p.net))
         wallet.add_row("Lifetime", net_text(prof.net))
         extra = 0
-        if prof.rebuys:
+        if prof.loan:
+            left = prof.rounds_left
+            when = (f"due in {left}" if left > 0 else "due now" if left == 0 else f"{-left} late")
+            wallet.add_row("Owe Vinnie", Text.assemble((money(prof.debt), "bold red"),
+                                                      (f"  {when}", "red" if left <= 0 else "yellow" if left <= 3 else "grey62")))
+            extra += 1
+        elif prof.rebuys:
             wallet.add_row("Rebuys", Text(str(prof.rebuys), "magenta"))
             extra += 1
         if p.dirty:

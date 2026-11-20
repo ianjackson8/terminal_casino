@@ -176,6 +176,5 @@
             }
         }
     ],
-    "disabled_tables": [],
-    "plugin_overrides": {}
+    "disabled_tables": []
 }

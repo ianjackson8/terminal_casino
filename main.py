@@ -37,7 +37,6 @@ DEFAULTS = {
     "enabled_plugins": [],      # optional game order in the lobby; empty = discovery order
     "tables": [],               # extra tables per game (stakes + rules); see docs/GAME_SPEC.md §6
     "disabled_tables": [],      # table ids hidden from the lobby (toggled in Settings)
-    "plugin_overrides": {},
 }
 
 
@@ -50,6 +49,7 @@ def load_settings() -> dict:
         # pre-tables configs hid whole games; a game's default table id is its plugin key
         legacy = settings.pop("disabled_plugins", None) or []
         settings["disabled_tables"] = sorted(set(settings.get("disabled_tables") or []) | set(legacy))
+        settings.pop("plugin_overrides", None)      # removed in 1.0: table rules replaced it
         return settings
     except FileNotFoundError:
         return dict(DEFAULTS)
@@ -284,7 +284,7 @@ def main() -> None:
             ui.splash_info = "Installing games…"
             ui.refresh()
             ensure_games(__version__, log=log_to(ui), plugins_dir=PLUGINS_DIR)
-        all_plugins = discover_plugins(PLUGINS_DIR, overrides=settings["plugin_overrides"], log=log_to(ui))
+        all_plugins = discover_plugins(PLUGINS_DIR, log=log_to(ui))
         n = len(open_tables(load_tables(all_plugins, settings, log=log_to(ui)), settings))
         ui.splash_info = (f"New players buy in for [bold]{money(settings['init_balance'])}[/]  ·  "
                           f"{n} table{'s' if n != 1 else ''} open")

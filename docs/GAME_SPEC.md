@@ -1,9 +1,11 @@
 # Terminal Casino — Game Plugin Spec
 
-**Status:** Draft v0.6 · 2026-11-13
-**Applies to:** any game added under `plugins/` (Slot Machine, AI Blackjack, and future tables)
+**Status:** v1.0, frozen · 2026-11-19
+**Applies to:** every game installed under `plugins/`
 
-This document defines what a game must do to plug into Terminal Casino, and how it should look and feel once it's in. Sections marked **MUST** are enforced by the casino or will break things if ignored. **SHOULD** items are house style. Items marked *(proposed)* aren't implemented in the casino yet. See [Open questions](#10-open-questions--proposed-changes).
+This document defines what a game must do to plug into Terminal Casino, and how it should look and feel once it's in. Sections marked **MUST** are enforced by the casino or will break things if ignored. **SHOULD** items are house style.
+
+**Stability.** v1.0 is frozen. A game that meets it will keep working in every 1.x release of the casino. A later 1.x spec may only add optional things, such as new SHOULDs, optional `PLUGIN_META` keys, or optional `run()` keywords that games can ignore. Anything that would break a compliant game waits for spec 2.0. Ideas under consideration are listed in [§9](#9-ideas-for-later-versions); none of them are part of the contract.
 
 ---
 
@@ -251,7 +253,7 @@ The casino runs every `plugin.py` at launch, before the lobby appears.
 
 ### 4.5 Dependencies
 
-- List them in the game's own `requirements.txt`. For now, install each enabled plugin's requirements by hand. *(proposed)* A casino setup script that installs them all.
+- List them in the game's own `requirements.txt`. Players install them by hand (`pip install -r plugins/<key>/requirements.txt`).
 - `rich` is guaranteed to be available because the casino depends on it.
 - Pin nothing tighter than needed. All games share one environment.
 
@@ -356,8 +358,7 @@ The casino's `game_settings.json` holds the casino's settings and its **tables**
     {"id": "bj_single_deck", "game": "ai_blackjack", "name": "Single Deck", "min_bet": 10, "max_bet": 500,
      "rules": {"num_decks": 1, "blackjack_payout": "6:5"}}
   ],
-  "disabled_tables": ["bj_single_deck"],
-  "plugin_overrides": {}
+  "disabled_tables": ["bj_single_deck"]
 }
 ```
 
@@ -371,7 +372,7 @@ The casino's `game_settings.json` holds the casino's settings and its **tables**
 - A table that fails validation isn't opened, and the reason is logged in the Casino Floor. Causes include an unknown rule, a bad value, `max_bet < min_bet`, a duplicate id, or a game that can't take tables. The game's other tables still open.
 - Stats are kept per table ("Blackjack · High Roller") and totalled per game on the Stats page.
 
-*(legacy)* `plugin_overrides` is still read by the loader but not passed to games. Use table `rules` instead.
+Older configs may contain `plugin_overrides`, which tables replaced. It was removed in 1.0, and the casino drops it on load.
 
 ---
 
@@ -475,27 +476,13 @@ The automated check can't play the game. Before enabling a game, also confirm:
 
 ---
 
-## 9. Integration notes for current games
+## 9. Ideas for later versions
 
-- **Slot Machine:** low effort. Needs `plugin.py` and path fixes; its UI will need restyling to §5.
-- **AI Blackjack:** already matches §5 visually. Needs:
-  - `quit()` / `sys.exit` replaced with a return path
-  - paths resolved from `HERE` (`game_settings.json`, `models/`, `logs/`, `saves/`)
-  - generic module names (`tui`, `strategy`, `counter`) prefixed or packaged
-  - PyTorch imported lazily
-  - the end-of-game `print_after` stats moved inside the UI (§4.1)
-  - save/load turned off for the human balance in plugin mode
-  - single human seat
-  - version string switched from `v5.0` to semver (`5.0.0`) in `PLUGIN_META`, plus an annotated `v5.0.0` tag on the release commit (it's a git repo)
-
----
-
-## 10. Open questions / proposed changes
+Not part of the v1.0 contract. Each would arrive as an optional addition in a 1.x spec, or wait for 2.0 if it would break existing games.
 
 1. **Ctrl-C semantics.** Should the casino keep the game's last known balance instead of rolling back? That would need games to report their balance as it changes (e.g. a callback), so rollback is the simpler default for now.
-2. **Settings passthrough.** ~~Add a `settings=` keyword~~. Replaced by tables (§3.5); remove `plugin_overrides`.
-3. **Explicit exit exception.** Provide `casino.GameExit(balance)` so deeply nested game code can leave without threading a return value up? It would conflict with "games don't import `casino.*`", so the alternative is for games to define their own internal exception and catch it in `plugin.py`.
-4. **Richer return value.** Return `{"balance": ..., "rounds": ..., "biggest_win": ...}` so the casino's stats screen can show per-game detail? Stay backwards compatible by still accepting a bare float.
-5. **Shared UI kit.** Move the house style (`money`, key-caps footer, header, palette, key reader) into a small standalone package both the casino and the games depend on, instead of copy-paste.
-6. **Module isolation.** The loader could run each plugin with a scoped `sys.path` and clear its modules from `sys.modules` afterwards, which would remove the collision rule in §4.3.
-7. **Plugin API version.** Add `PLUGIN_META["api"] = 1` so the loader can reject or adapt to older plugins once the contract changes.
+2. **Explicit exit exception.** Provide `casino.GameExit(balance)` so deeply nested game code can leave without threading a return value up? It would conflict with "games don't import `casino.*`", so the alternative is for games to define their own internal exception and catch it in `plugin.py`.
+3. **Richer return value.** Return `{"balance": ..., "rounds": ..., "biggest_win": ...}` so the casino's stats screen can show per-game detail? Stay backwards compatible by still accepting a bare float.
+4. **Shared UI kit.** Move the house style (`money`, key-caps footer, header, palette, key reader) into a small standalone package both the casino and the games depend on, instead of copy-paste.
+5. **Module isolation.** The loader could run each plugin with a scoped `sys.path` and clear its modules from `sys.modules` afterwards, which would remove the collision rule in §4.3.
+6. **Plugin API version.** Add `PLUGIN_META["api"] = 1` so the loader can reject or adapt to older plugins once the contract changes.

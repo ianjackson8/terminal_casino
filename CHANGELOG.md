@@ -1,7 +1,26 @@
 # Changelog
 
 All notable changes to Terminal Casino. Versions follow [semver](https://semver.org). Each game is
-versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has its own draft number.
+versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has its own version.
+
+## [1.0.0] — 2026-11-19
+
+The first stable release.
+
+### Plugin spec v1.0, frozen
+- **A stable contract:** a game that meets spec v1.0 keeps working in every 1.x release. Later 1.x
+  specs may only add optional things; anything that would break a compliant game waits for 2.0.
+- **Cleanups:** the open questions are now "Ideas for later versions" and aren't part of the
+  contract. The integration notes for the first two games are gone, since both games shipped.
+
+### Removed
+- **`plugin_overrides`:** the setting from before tables, which hadn't been passed to games since
+  tables replaced it. Old `game_settings.json` files still load; the key is dropped when the
+  settings are next saved. `discover_plugins()` no longer takes an `overrides` argument.
+
+### Games in this release
+Unchanged from 1.0.0-beta.4: Blackjack 5.2.0, Roulette 1.2.0, Baccarat 1.1.0, Craps 1.1.0,
+Slots 1.1.1 and Texas Hold'em 1.0.2.
 
 ## [1.0.0-beta.4] — 2026-11-19
 
@@ -146,6 +165,7 @@ before 1.0.
 - **Legacy setting:** `plugin_overrides` is still read but not passed to games. Table rules replace
   it.
 
+[1.0.0]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0
 [1.0.0-beta.4]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.4
 [1.0.0-beta.3]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/ianjackson8/terminal_casino/releases/tag/v1.0.0-beta.2

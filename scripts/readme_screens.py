@@ -394,7 +394,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         store = ProfileStore(Path(tmp))
         regulars(store)
-        plugins = discover_plugins(ROOT / "plugins", {}, log=lambda level, msg: print(f"  [{level}] {msg}"))
+        plugins = discover_plugins(ROOT / "plugins", log=lambda level, msg: print(f"  [{level}] {msg}"))
         casino_screens(plugins, store)
         check_screen(plugins)
         balance = store.load("Alex").balance

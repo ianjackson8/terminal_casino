@@ -22,7 +22,6 @@ class Plugin:
     description: str
     min_bet: float
     run: Callable
-    overrides: dict
     version: str = ""
     path: Path = None
     warnings: List[str] = field(default_factory=list)
@@ -40,8 +39,7 @@ def _default_log(level: str, message: str) -> None:
     print(f"  [loader] {message}")
 
 
-def discover_plugins(plugins_dir: Path, overrides: dict, log: LogFn = _default_log,
-                     blocked: List[Blocked] = None) -> List[Plugin]:
+def discover_plugins(plugins_dir: Path, log: LogFn = _default_log, blocked: List[Blocked] = None) -> List[Plugin]:
     '''
     Scan plugins_dir for game folders, check each one, and return the compliant ones in
     folder-name order. Non-compliant games are logged and, if `blocked` is given, appended to it.
@@ -77,7 +75,6 @@ def discover_plugins(plugins_dir: Path, overrides: dict, log: LogFn = _default_l
             description=meta["description"],
             min_bet=float(meta["min_bet"]),
             run=report.module.run,
-            overrides=overrides.get(key, {}),
             version=meta["version"],
             path=subdir,
             warnings=warnings,

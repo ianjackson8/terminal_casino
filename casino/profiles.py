@@ -50,17 +50,66 @@ class GameStats:
 class Profile:
     name: str
     balance: float
-    bought_in: float                    # initial buy-in plus every rebuy
+    bought_in: float                    # initial buy-in plus every rebuy (rebuys predate the loan shark)
     created: float = field(default_factory=time.time)
     last_played: float = field(default_factory=time.time)
     sessions: int = 0
     rebuys: int = 0
+    loans: int = 0                      # loans ever taken from the loan shark
+    loan: Optional[dict] = None         # outstanding debt: {"owed", "borrowed", "due", "taken"}
     games: Dict[str, GameStats] = field(default_factory=dict)
     history: List[dict] = field(default_factory=list)   # {"t", "game", "delta", "balance"}
 
     @property
     def net(self) -> float:
-        return self.balance - self.bought_in
+        return self.balance - self.bought_in - self.debt
+
+    #-- the loan shark: rounds are table visits (games_played) --#
+
+    @property
+    def debt(self) -> float:
+        return self.loan["owed"] if self.loan else 0.0
+
+    @property
+    def rounds_left(self) -> int:
+        '''Rounds until the loan is due; negative when it's overdue.'''
+        return self.loan["due"] - self.games_played if self.loan else 0
+
+    def borrow(self, amount: float, vig: float, rounds: int) -> None:
+        '''Take a loan: `amount` in chips, `amount * (1 + vig)` owed. Rolling over keeps the old due date.'''
+        owed = round(amount * (1 + vig), 2)
+        if self.loan:
+            self.loan["owed"] = round(self.loan["owed"] + owed, 2)
+            self.loan["borrowed"] += amount
+        else:
+            self.loan = {"owed": owed, "borrowed": amount, "due": self.games_played + rounds, "taken": time.time()}
+        self.loans += 1
+        self.balance += amount
+        self._log_money("Loan", amount)
+
+    def repay(self, amount: float, label: str = "Repaid") -> float:
+        '''Pay down the debt from the balance. Returns what was actually paid.'''
+        amount = round(min(amount, self.debt, self.balance), 2)
+        if amount <= 0:
+            return 0.0
+        self.balance = round(self.balance - amount, 2)
+        self.loan["owed"] = round(self.loan["owed"] - amount, 2)
+        if self.loan["owed"] < 0.01:
+            self.loan = None
+        self._log_money(label, -amount)
+        return amount
+
+    def accrue(self, rate: float) -> float:
+        '''Late interest for one round, once the due date has passed. Returns the interest added.'''
+        if not self.loan or self.rounds_left >= 0:
+            return 0.0
+        interest = round(self.loan["owed"] * rate, 2)
+        self.loan["owed"] = round(self.loan["owed"] + interest, 2)
+        return interest
+
+    def _log_money(self, label: str, delta: float) -> None:
+        self.history.append({"t": time.time(), "game": label, "delta": delta, "balance": self.balance})
+        del self.history[:-HISTORY_CAP]
 
     @property
     def games_played(self) -> int:
@@ -79,13 +128,6 @@ class Profile:
         self.history.append({"t": time.time(), "game": label, "delta": delta, "balance": after})
         del self.history[:-HISTORY_CAP]
         self.last_played = time.time()
-
-    def rebuy(self, amount: float) -> None:
-        self.balance += amount
-        self.bought_in += amount
-        self.rebuys += 1
-        self.history.append({"t": time.time(), "game": "Rebuy", "delta": amount, "balance": self.balance})
-        del self.history[:-HISTORY_CAP]
 
     def balance_series(self) -> List[float]:
         '''Balance over time, starting from the first buy-in.'''

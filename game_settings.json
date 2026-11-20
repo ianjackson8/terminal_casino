@@ -2,6 +2,8 @@
     "init_balance": 500,
     "autosave": true,
     "allow_rebuy": true,
+    "loan_amount": 500,
+    "loan_rounds": 10,
     "enabled_plugins": [],
     "tables": [
         {

@@ -121,7 +121,8 @@ def _overview(player, width: int, height: int):
     lifetime = _kv([
         ("Balance", Text(money(p.balance), "bold green" if p.balance > 0 else "bold red")),
         ("Bought in", money(p.bought_in)),
-        ("Rebuys", Text(str(p.rebuys), "magenta" if p.rebuys else "grey50")),
+        (("Owe Vinnie", Text(money(p.debt), "bold red")) if p.loan else
+         ("Loans", Text(str(p.loans + p.rebuys), "magenta" if p.loans + p.rebuys else "grey50"))),
         ("Net", net_text(p.net)),
         ("Games", f"{p.games_played:,}"),
         ("Win rate", pct(sum(g.won for g in p.games.values()), p.games_played)),
@@ -214,8 +215,12 @@ def _history(player, width: int, height: int):
     recent = p.history[-room:][::-1]
     series = [h["balance"] for h in p.history[-30:]]
     for i, h in enumerate(recent):
-        is_rebuy = h["game"] == "Rebuy"
-        result = Text(f"+{money(h['delta'])} chips", "magenta") if is_rebuy else net_text(h["delta"])
+        if h["game"] in ("Rebuy", "Loan"):
+            result = Text(f"+{money(h['delta'])} chips", "magenta")
+        elif h["game"] in ("Repaid", "Collected"):
+            result = Text(f"−{money(-h['delta'])} to Vinnie", "magenta")
+        else:
+            result = net_text(h["delta"])
         when = datetime.fromtimestamp(h["t"]).strftime("%b %d %H:%M")
         t.add_row(when, esc(h["game"]), result, money(h["balance"]),
                   sparkline(series, 30) if i == 0 and width >= 90 else "")
@@ -258,11 +263,15 @@ def stats_page(ui, player) -> None:
 
 FIELDS = [
     {"key": "init_balance", "label": "Starting balance", "kind": "money", "min": 1,
-     "desc": "Buy-in for new profiles, and the amount of each rebuy"},
+     "desc": "Buy-in for new profiles"},
     {"key": "autosave", "label": "Autosave", "kind": "bool",
      "desc": "Save your profile after every game"},
-    {"key": "allow_rebuy", "label": "Allow rebuys", "kind": "bool",
-     "desc": "Offer a rebuy when you can't afford any table"},
+    {"key": "allow_rebuy", "label": "Loan shark", "kind": "bool",
+     "desc": "Vinnie offers a loan when you can't afford any table"},
+    {"key": "loan_amount", "label": "Loan amount", "kind": "money", "min": 1,
+     "desc": "Chips per loan (you owe 20% more)"},
+    {"key": "loan_rounds", "label": "Loan term", "kind": "int", "min": 1,
+     "desc": "Rounds (table visits) before the loan is due"},
 ]
 
 
@@ -600,7 +609,12 @@ def settings_page(ui, settings: dict, all_plugins: list, store, current: Optiona
                 while True:
                     raw = ui.ask(f"[bold]{item['label']}[/]", default=f"{work.get(item['key'], 0):g}")
                     try:
-                        work[item["key"]] = _parse_money(raw, item.get("min"))
+                        if item["kind"] == "int":
+                            if not raw.strip().isdigit() or int(raw) < item.get("min", 0):
+                                raise ValueError(f"Must be a whole number, at least {item.get('min', 0)}.")
+                            work[item["key"]] = int(raw)
+                        else:
+                            work[item["key"]] = _parse_money(raw, item.get("min"))
                         break
                     except ValueError as e:
                         ui.error(str(e))

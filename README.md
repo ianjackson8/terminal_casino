@@ -141,6 +141,17 @@ Open **Settings** (`G`) to add, duplicate, edit or close tables. Each game decla
 
 Three tabs: **Overview** (lifetime and this visit, plus a balance chart), **Games** (per table, totalled per game), and **History** (every result, newest first).
 
+### The loan shark
+
+Run out of chips and there's no rebuy. Press `R` and Vinnie "The Vig" comes over to your table with a cigar and an offer: $500 now, $600 back within 10 rounds (a round is one visit to a table).
+
+- **On time:** he tips his hat from the bar, then gets more pointed as the due date gets close. Press `P` in the lobby to pay him all or part of what you owe.
+- **Late:** 10% interest compounds every round you play past the due date, and the threats get darker.
+- **Six rounds late:** his boys take every chip you have and put it toward the debt.
+- **Broke again:** he'll lend more on the same due date, up to a limit, then cut you off.
+
+What you owe counts against your lifetime net, so the 20% fee and any late interest are real losses. The loan amount and term are in Settings, and the loan shark can be switched off there.
+
 ### A bouncer for plugins
 
 <picture>
@@ -230,7 +241,8 @@ pip install -r requirements.txt && python3 main.py
 | `↵` or `1`–`9` | Sit down at the table | Confirm |
 | `S` | Stats | |
 | `G` | Settings (tables, rules, profiles) | |
-| `R` | Rebuy, when you can't afford any table | |
+| `R` | Visit the loan shark, when you can't afford any table | |
+| `P` | Pay the loan shark back, while you owe him | |
 | `Q` / `Esc` | Cash out | Back |
 | `Ctrl-C` | Cash out (and autosave) | |
 
@@ -288,7 +300,8 @@ The current release is **1.0.0-beta.3**, a beta of 1.0. See the [changelog](CHAN
 | | Milestone |
 |---|---|
 | ✅ | Plugin loader and full-screen lobby |
-| ✅ | Profiles, saving, rebuys, stats and settings |
+| ✅ | Profiles, saving, stats and settings |
+| ✅ | A loan shark instead of rebuys |
 | ✅ | Plugin spec and compliance check, enforced at startup |
 | ✅ | AI Blackjack, the first game |
 | ✅ | Several tables per game, with stakes and rules set by the house |

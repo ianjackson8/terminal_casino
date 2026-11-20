@@ -39,7 +39,7 @@
         }
     },
     "bundle": {
-        "version": "1.0.0-beta.3",
+        "version": "1.0.0-beta.4",
         "sha256": "bf3421e9ff6f0ec1a53e9b0b0722c330c47df01fea0eeaae26a241cf70b26ef4",
         "size": 552715
     }

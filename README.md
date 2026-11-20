@@ -147,7 +147,7 @@ Run out of chips and there's no rebuy. Press `R` and Vinnie "The Vig" comes over
 
 - **On time:** he tips his hat from the bar, then gets more pointed as the due date gets close. Press `P` in the lobby to pay him all or part of what you owe.
 - **Late:** 10% interest compounds every round you play past the due date, and the threats get darker.
-- **Six rounds late:** his boys take every chip you have and put it toward the debt.
+- **Ten rounds late:** his boys take every chip you have and put it toward the debt.
 - **Broke again:** he'll lend more on the same due date, up to a limit, then cut you off.
 
 What you owe counts against your lifetime net, so the 20% fee and any late interest are real losses. The loan amount and term are in Settings, and the loan shark can be switched off there.

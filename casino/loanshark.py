@@ -23,7 +23,7 @@ from casino.tui import esc, money
 
 VIG = 0.20              # added up front: borrow $500, owe $600
 LATE_RATE = 0.10        # compounds every round past the due date
-COLLECT_AFTER = 6       # rounds overdue before the boys start taking chips
+COLLECT_AFTER = 10      # rounds overdue before the boys start taking chips
 MAX_LOANS_OWED = 4      # he won't lend once you owe this many loans' worth
 
 NAME = 'Vinnie "The Vig"'

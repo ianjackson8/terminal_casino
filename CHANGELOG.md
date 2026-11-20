@@ -9,7 +9,7 @@ versioned on its own (see the table under each release); `docs/GAME_SPEC.md` has
 - **No more rebuys:** when you can't afford any table, Vinnie "The Vig" offers a $500 loan. You owe
   $600 (a 20% fee), due in 10 rounds; a round is one visit to a table.
 - **He escalates:** a nod from the bar, then reminders as the due date gets close, then threats.
-  Every round past the due date adds 10% compound interest. At six rounds late his boys take your
+  Every round past the due date adds 10% compound interest. At ten rounds late his boys take your
   chips toward the debt.
 - **Paying back:** `P` in the lobby pays all or part of the debt. Taking another loan while you owe
   adds to the debt and keeps the original due date. He stops lending at four loans' worth of debt.
